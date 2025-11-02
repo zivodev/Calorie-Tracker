@@ -25,7 +25,7 @@
       position: relative;
     }
 
-    /* 🌐 Floating small circular language button */
+    /* small circular language button */
     #langBtn {
       position: fixed;
       top: 15px;
@@ -72,11 +72,21 @@
       color: #fff;
     }
 
+    /* Buttons */
     button[type="submit"], #sendImage, #openImagePicker {
       background: #d3a15d;
       color: #111;
       font-weight: 600;
       cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    /* Hover effect */
+    button[type="submit"]:hover,
+    #sendImage:hover,
+    #openImagePicker:hover {
+      background: #e2b56f;
+      transform: scale(1.05);
     }
 
     #goal, #progressContainer {
@@ -129,7 +139,7 @@
       <progress id="calorieBar" value="0" max="100"></progress>
       <p id="progressText">0 / 0 kcal</p>
 
-      <!-- ✅ Updated Image Input -->
+      <!-- Image Input -->
       <input 
         type="file" 
         id="mealImage" 
