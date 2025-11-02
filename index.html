@@ -6,12 +6,11 @@
 
 
 
-
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>CalorieScope</title>
 <style>
   body {
@@ -31,6 +30,21 @@
     max-width: 400px;
     padding: 20px;
     box-sizing: border-box;
+    position: relative;
+  }
+
+  /* 🌐 Language switch button */
+  #langBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #d3a15d;
+    color: #111;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
   }
 
   form {
@@ -38,27 +52,6 @@
     flex-direction: column;
     gap: 14px;
     margin-top: 40px;
-  }
-
-  .age-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .age-row input {
-    flex: 1;
-  }
-
-  #langBtn {
-    background: #d3a15d;
-    color: #111;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
   }
 
   input, select, button {
@@ -91,16 +84,20 @@
     width: 100%;
     height: 18px;
   }
+
+  @media (max-width: 480px) {
+    input, select, button {
+      font-size: 18px;
+    }
+  }
 </style>
 </head>
 <body>
   <div class="container" dir="ltr">
-    <form id="userForm">
-      <div class="age-row">
-        <input type="number" id="age" placeholder="Age" required />
-        <button id="langBtn" type="button">عربي</button>
-      </div>
+    <button id="langBtn">عربي</button>
 
+    <form id="userForm">
+      <input type="number" id="age" placeholder="Age" required />
       <input type="number" id="weight" placeholder="Weight (kg)" required />
       <input type="number" id="height" placeholder="Height (cm)" required />
 
@@ -213,8 +210,66 @@ document.getElementById("langBtn").addEventListener("click", () => {
 });
 
 updateLang();
+
+/* --- Your existing logic --- */
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const data = {
+    age: document.getElementById('age').value,
+    weight: document.getElementById('weight').value,
+    height: document.getElementById('height').value,
+    gender: document.getElementById('gender').value,
+    activity: document.getElementById('activity').value
+  };
+
+  try {
+    const res = await fetch('https://zivodev.app.n8n.cloud/webhook/bcddd092-eaa8-4a52-9e24-a1a7e5b26dd6', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch { result = {}; }
+
+    goal = Number(result.dailyGoal) || 0;
+    document.getElementById('goal').textContent = `${texts[lang].goalText} ${goal} kcal`;
+    document.getElementById('progressContainer').style.display = 'block';
+    document.getElementById('calorieBar').max = Math.max(goal, 1);
+    document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+    alert('Error fetching goal.');
+  }
+});
+
+document.getElementById('sendImage').addEventListener('click', async () => {
+  const file = document.getElementById('mealImage').files[0];
+  if (!file) return alert('Upload an image first');
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('goal', goal);
+  formData.append('current', current);
+
+  const res = await fetch('https://YOUR-N8N-URL/webhook/meal-image', {
+    method: 'POST',
+    body: formData
+  });
+
+  const result = await res.json();
+  const calories = Number(result.mealCalories) || 0;
+  current += calories;
+
+  document.getElementById('calorieBar').value = current;
+  document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
+});
 </script>
 </body>
 </html>
+
 
 
