@@ -2,6 +2,23 @@
   <input type="number" id="age" placeholder="Age" required>
   <input type="number" id="weight" placeholder="Weight (kg)" required>
   <input type="number" id="height" placeholder="Height (cm)" required>
+
+  <!-- ✅ Added gender and activity fields -->
+  <select id="gender" required>
+    <option value="">Select Gender</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+
+  <select id="activity" required>
+    <option value="">Activity Level</option>
+    <option value="sedentary">Sedentary (little or no exercise)</option>
+    <option value="light">Lightly Active (1–3 days/week)</option>
+    <option value="moderate">Moderately Active (3–5 days/week)</option>
+    <option value="active">Active (6–7 days/week)</option>
+    <option value="very_active">Very Active (hard daily exercise)</option>
+  </select>
+
   <button type="submit">Get Calorie Goal</button>
 </form>
 
@@ -22,7 +39,9 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
   const data = {
     age: document.getElementById('age').value,
     weight: document.getElementById('weight').value,
-    height: document.getElementById('height').value
+    height: document.getElementById('height').value,
+    gender: document.getElementById('gender').value,     // ✅ Added
+    activity: document.getElementById('activity').value  // ✅ Added
   };
 
   const res = await fetch('https://zivodev.app.n8n.cloud/webhook-test/bcddd092-eaa8-4a52-9e24-a1a7e5b26dd6', {
