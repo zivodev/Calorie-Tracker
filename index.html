@@ -96,7 +96,7 @@
     color: #fff;
   }
 
-  button[type="submit"], #sendImage, #addCaloriesBtn {
+  button[type="submit"], #sendImage {
     background: #d3a15d;
     color: #111;
     font-weight: 600;
@@ -119,19 +119,61 @@
     height: 18px;
   }
 
+  /* Manual calorie input */
   .manualAdd {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  #manualCalories {
+    flex: 1;
+    font-size: 20px;
+    padding: 18px;
+    text-align: center;
+    border-radius: 12px;
+    background: #222;
+    color: #fff;
+    border: 2px solid #333;
+  }
+
+  #addCaloriesBtn {
+    background: #d3a15d;
+    color: #111;
+    font-weight: 700;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 55px;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  #addCaloriesBtn:hover {
+    background: #e2b56f;
+    transform: scale(1.1);
+  }
+
+  #sendImage {
     margin-top: 10px;
   }
 
-  .manualAdd input {
-    flex: 1;
-  }
-
   @media (max-width: 480px) {
-    input, select, button {
+    #manualCalories {
       font-size: 18px;
+      padding: 16px;
+    }
+
+    #addCaloriesBtn {
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      line-height: 50px;
     }
   }
 </style>
@@ -173,7 +215,7 @@
       <!-- Manual calorie input -->
       <div class="manualAdd">
         <input type="number" id="manualCalories" placeholder="Add calories manually" />
-        <button id="addCaloriesBtn" type="button">Add</button>
+        <button id="addCaloriesBtn" type="button">+</button>
       </div>
 
       <input type="file" id="mealImage" accept="image/*" style="margin-top:10px;" />
@@ -204,8 +246,7 @@ const texts = {
     send: "Send Image",
     goalText: "Your daily goal:",
     switchIcon: "ع",
-    manualAdd: "Add calories manually",
-    addBtn: "Add"
+    manualAdd: "Add calories manually"
   },
   ar: {
     age: "العمر",
@@ -224,8 +265,7 @@ const texts = {
     send: "إرسال الصورة",
     goalText: "هدفك اليومي:",
     switchIcon: "e",
-    manualAdd: "أضف السعرات يدويًا",
-    addBtn: "إضافة"
+    manualAdd: "أضف السعرات يدويًا"
   }
 };
 
@@ -237,6 +277,7 @@ function updateLang() {
   document.getElementById("age").placeholder = t.age;
   document.getElementById("weight").placeholder = t.weight;
   document.getElementById("height").placeholder = t.height;
+  document.getElementById("manualCalories").placeholder = t.manualAdd;
 
   const gender = document.getElementById("gender");
   gender.options[0].text = t.gender;
@@ -254,8 +295,6 @@ function updateLang() {
   document.querySelector('button[type="submit"]').textContent = t.submit;
   document.getElementById('sendImage').textContent = t.send;
   document.getElementById('langBtn').textContent = t.switchIcon;
-  document.getElementById('manualCalories').placeholder = t.manualAdd;
-  document.getElementById('addCaloriesBtn').textContent = t.addBtn;
 
   if (goal > 0) {
     document.getElementById('goal').textContent = `${t.goalText} ${goal} kcal`;
@@ -329,7 +368,7 @@ document.getElementById('addCaloriesBtn').addEventListener('click', () => {
   input.value = "";
 });
 
-/* --- Upload image (still works) --- */
+/* --- Upload image --- */
 document.getElementById('sendImage').addEventListener('click', async () => {
   const file = document.getElementById('mealImage').files[0];
   if (!file) return alert('Upload an image first');
@@ -362,4 +401,3 @@ document.getElementById('sendImage').addEventListener('click', async () => {
 </script>
 </body>
 </html>
-
