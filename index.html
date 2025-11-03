@@ -96,15 +96,17 @@
     color: #fff;
   }
 
-  button[type="submit"], #sendImage {
+  button[type="submit"], #sendImage, #addCaloriesBtn {
     background: #d3a15d;
     color: #111;
     font-weight: 600;
     cursor: pointer;
+    transition: 0.2s;
   }
-    #sendImage:hover {
+
+  button:hover {
     background: #e2b56f;
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 
   #goal, #progressContainer {
@@ -115,6 +117,16 @@
   progress {
     width: 100%;
     height: 18px;
+  }
+
+  .manualAdd {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .manualAdd input {
+    flex: 1;
   }
 
   @media (max-width: 480px) {
@@ -157,7 +169,14 @@
     <div id="progressContainer" style="display:none;">
       <progress id="calorieBar" value="0" max="100"></progress>
       <p id="progressText">0 / 0 kcal</p>
-      <input type="file" id="mealImage" accept="image/*" />
+
+      <!-- Manual calorie input -->
+      <div class="manualAdd">
+        <input type="number" id="manualCalories" placeholder="Add calories manually" />
+        <button id="addCaloriesBtn" type="button">Add</button>
+      </div>
+
+      <input type="file" id="mealImage" accept="image/*" style="margin-top:10px;" />
       <button id="sendImage">Send Image</button>
     </div>
   </div>
@@ -184,7 +203,9 @@ const texts = {
     submit: "Get Calorie Goal",
     send: "Send Image",
     goalText: "Your daily goal:",
-    switchIcon: "ع"
+    switchIcon: "ع",
+    manualAdd: "Add calories manually",
+    addBtn: "Add"
   },
   ar: {
     age: "العمر",
@@ -202,7 +223,9 @@ const texts = {
     submit: "احسب الهدف اليومي",
     send: "إرسال الصورة",
     goalText: "هدفك اليومي:",
-    switchIcon: "e"
+    switchIcon: "e",
+    manualAdd: "أضف السعرات يدويًا",
+    addBtn: "إضافة"
   }
 };
 
@@ -231,6 +254,8 @@ function updateLang() {
   document.querySelector('button[type="submit"]').textContent = t.submit;
   document.getElementById('sendImage').textContent = t.send;
   document.getElementById('langBtn').textContent = t.switchIcon;
+  document.getElementById('manualCalories').placeholder = t.manualAdd;
+  document.getElementById('addCaloriesBtn').textContent = t.addBtn;
 
   if (goal > 0) {
     document.getElementById('goal').textContent = `${t.goalText} ${goal} kcal`;
@@ -275,9 +300,11 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     try { result = JSON.parse(text); } catch { result = {}; }
 
     goal = Number(result.dailyGoal) || 0;
+    current = 0;
     document.getElementById('goal').textContent = `${texts[lang].goalText} ${goal} kcal`;
     document.getElementById('progressContainer').style.display = 'block';
     document.getElementById('calorieBar').max = Math.max(goal, 1);
+    document.getElementById('calorieBar').value = current;
     document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
 
   } catch (err) {
@@ -288,6 +315,21 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
   }
 });
 
+/* --- Add calories manually --- */
+document.getElementById('addCaloriesBtn').addEventListener('click', () => {
+  const input = document.getElementById('manualCalories');
+  const amount = Number(input.value);
+  if (!amount || amount <= 0) return alert(lang === "en" ? "Enter valid calories" : "أدخل عدد سعرات صالح");
+
+  current += amount;
+  if (current > goal) current = goal;
+
+  document.getElementById('calorieBar').value = current;
+  document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
+  input.value = "";
+});
+
+/* --- Upload image (still works) --- */
 document.getElementById('sendImage').addEventListener('click', async () => {
   const file = document.getElementById('mealImage').files[0];
   if (!file) return alert('Upload an image first');
@@ -307,6 +349,7 @@ document.getElementById('sendImage').addEventListener('click', async () => {
     const result = await res.json();
     const calories = Number(result.mealCalories) || 0;
     current += calories;
+    if (current > goal) current = goal;
 
     document.getElementById('calorieBar').value = current;
     document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
@@ -320,5 +363,3 @@ document.getElementById('sendImage').addEventListener('click', async () => {
 </body>
 </html>
 
-</body>
-</html>
