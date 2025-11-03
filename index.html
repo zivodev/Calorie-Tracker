@@ -22,7 +22,6 @@
     min-height: 100vh;
   }
 
-  /* Brand header */
   .brand {
     display: flex;
     align-items: center;
@@ -77,7 +76,6 @@
     transform: scale(1.1);
   }
 
-  /* Loading bar */
   #loadingBar {
     position: fixed;
     top: 0;
@@ -116,9 +114,12 @@
     box-sizing: border-box;
   }
 
+  /* Translucent inputs & selects */
   input, select {
-    background: #222;
+    background: rgba(34, 34, 34, 0.6);
     color: #fff;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.1);
   }
 
   button[type="submit"], #sendImage {
@@ -144,37 +145,37 @@
     height: 18px;
   }
 
-  /* Manual calorie input */
   .manualAdd {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
+    gap: 10px;
+    margin-top: 0;
   }
 
   #manualCalories {
     flex: 1;
-    font-size: 20px;
-    padding: 18px;
+    font-size: 16px;
+    padding: 10px;
     text-align: center;
     border-radius: 12px;
-    background: #222;
+    background: rgba(34, 34, 34, 0.6);
     color: #fff;
-    border: 2px solid #333;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(6px);
   }
 
   #addCaloriesBtn {
     background: #d3a15d;
     color: #111;
     font-weight: 700;
-    width: 55px;
-    height: 55px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    font-size: 22px;
-    line-height: 55px;
+    font-size: 20px;
+    line-height: 44px;
     text-align: center;
     transition: all 0.2s ease;
   }
@@ -185,37 +186,15 @@
   }
 
   #sendImage {
-    width: 55px;
-    height: 55px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
-    line-height: 55px;
+    line-height: 44px;
     padding: 0;
   }
 
-  @media (max-width: 480px) {
-    #manualCalories {
-      font-size: 18px;
-      padding: 16px;
-    }
-
-    #addCaloriesBtn {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
-
-    #sendImage {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
-  }
-
-  /* Actions row (manual add + send image) */
   .actionsColumn {
     display: flex;
     flex-direction: column;
@@ -232,55 +211,12 @@
     gap: 12px;
   }
 
-  .uploadLabel {
-    font-size: 14px;
-    color: #ddd;
-    user-select: none;
-  }
-
-  /* Unified small circular button style */
-  .circleBtn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    padding: 0;
-  }
-
-  /* Make manual add smaller */
-  .manualAdd {
-    gap: 10px;
-    margin-top: 0;
-  }
-
-  #manualCalories {
-    width: var(--control-width);
-    height: var(--control-height);
-    padding: 10px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-
-  #addCaloriesBtn {
-    width: 44px;
-    height: 44px;
-    line-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
-
-  /* Upload button (styled label) */
   #mealImage { display: none; }
+
   #uploadBtn {
-    background: #222;
+    background: rgba(34, 34, 34, 0.6);
     color: #fff;
-    border: 2px solid #333;
+    border: 1px solid rgba(255,255,255,0.1);
     cursor: pointer;
     transition: 0.2s;
     width: var(--control-width);
@@ -290,19 +226,10 @@
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    backdrop-filter: blur(6px);
   }
-  #uploadBtn:hover { background: #2a2a2a; }
 
-  /* Ensure send stays perfectly circular */
-  #sendImage {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
+  #uploadBtn:hover { background: rgba(42, 42, 42, 0.7); }
 
   .macroProgress p { margin: 6px 0; font-size: 14px; color: #ddd; }
 </style>
@@ -336,7 +263,6 @@
         <option value="very_active">Very Active (hard daily exercise)</option>
       </select>
 
-      <!-- ADDED: Goal select (exact as you provided) -->
       <select id="goal" required>
         <option value="">Goal</option>
         <option value="maintain">Maintain weight</option>
@@ -349,7 +275,6 @@
       <button type="submit">Get Calorie Goal</button>
     </form>
 
-    <!-- renamed display div so it doesn't conflict with the select id="goal" -->
     <div id="goalDisplay"></div>
 
     <div id="progressContainer" style="display:none;">
@@ -363,14 +288,12 @@
       </div>
 
       <div class="actionsColumn">
-        <!-- Upload row (top) -->
         <div class="uploadRow">
           <input type="file" id="mealImage" accept="image/*" />
-          <button id="uploadBtn" type="button" aria-label="Upload">⬆ Add a photo</button>
-          <button id="sendImage" class="circleBtn" type="button" aria-label="Send">➤</button>
+          <button id="uploadBtn" type="button">⬆ Add a photo</button>
+          <button id="sendImage" class="circleBtn" type="button">➤</button>
         </div>
 
-        <!-- Manual calorie input (bottom) -->
         <div class="manualAdd">
           <input type="number" id="manualCalories" placeholder="Add calories manually" />
           <button id="addCaloriesBtn" class="circleBtn" type="button">+</button>
@@ -399,10 +322,10 @@ const texts = {
     active: "Active (6–7 days/week)",
     very_active: "Very Active (hard daily exercise)",
     submit: "Get Calorie Goal",
-    send: "➤",
     goalText: "Your daily goal:",
     switchIcon: "ع",
     manualAdd: "Add calories manually",
+    upload: "⬆ Add a photo",
   },
   ar: {
     age: "العمر",
@@ -418,10 +341,10 @@ const texts = {
     active: "نشاط مرتفع (6–7 أيام/أسبوع)",
     very_active: "نشاط عالي جداً (تمارين قوية يومياً)",
     submit: "احسب الهدف اليومي",
-    send: "➤",
     goalText: "هدفك اليومي:",
     switchIcon: "e",
     manualAdd: "أضف السعرات يدويًا",
+    upload: "⬆ أضف صورة",
   }
 };
 
@@ -434,6 +357,7 @@ function updateLang() {
   document.getElementById("weight").placeholder = t.weight;
   document.getElementById("height").placeholder = t.height;
   document.getElementById("manualCalories").placeholder = t.manualAdd;
+  document.getElementById("uploadBtn").textContent = t.upload;
 
   const gender = document.getElementById("gender");
   gender.options[0].text = t.gender;
@@ -449,20 +373,11 @@ function updateLang() {
   activity.options[5].text = t.very_active;
 
   document.querySelector('button[type="submit"]').textContent = t.submit;
-  document.getElementById('sendImage').textContent = t.send;
   document.getElementById('langBtn').textContent = t.switchIcon;
-  const addPhotoLabel = document.getElementById('addPhotoLabel');
-  if (addPhotoLabel) addPhotoLabel.textContent = t.addPhoto;
 
   if (goal > 0) {
     document.getElementById('goalDisplay').textContent = `${t.goalText} ${goal} kcal`;
   }
-}
-
-function showLoading(show) {
-  const bar = document.getElementById('loadingBar');
-  if (show) bar.classList.add('active');
-  else bar.classList.remove('active');
 }
 
 document.getElementById("langBtn").addEventListener("click", () => {
@@ -471,110 +386,6 @@ document.getElementById("langBtn").addEventListener("click", () => {
 });
 
 updateLang();
-
-/* --- Calorie goal logic --- */
-document.getElementById('userForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showLoading(true);
-
-  const data = {
-    age: document.getElementById('age').value,
-    weight: document.getElementById('weight').value,
-    height: document.getElementById('height').value,
-    gender: document.getElementById('gender').value,
-    activity: document.getElementById('activity').value,
-    goalType: document.getElementById('goal').value
-  };
-
-  try {
-    const res = await fetch('https://zivodev.app.n8n.cloud/webhook/bcddd092-eaa8-4a52-9e24-a1a7e5b26dd6', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const text = await res.text();
-    let result;
-    try { result = JSON.parse(text); } catch { result = {}; }
-
-    goal = Number(result.dailyGoal) || 0;
-    current = 0;
-    document.getElementById('goalDisplay').textContent = `${texts[lang].goalText} ${goal} kcal`;
-    document.getElementById('progressContainer').style.display = 'block';
-    document.getElementById('calorieBar').max = Math.max(goal, 1);
-    document.getElementById('calorieBar').value = current;
-    document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
-
-    // update macro targets if provided by n8n
-    const proteinGoal = Number(result.proteinGoal) || 0;
-    const carbGoal = Number(result.carbGoal) || 0;
-    const fatGoal = Number(result.fatGoal) || 0;
-
-    document.getElementById('proteinText').textContent = `Protein: 0g / ${proteinGoal}g`;
-    document.getElementById('carbsText').textContent = `Carbs: 0g / ${carbGoal}g`;
-    document.getElementById('fatText').textContent = `Fats: 0g / ${fatGoal}g`;
-
-  } catch (err) {
-    console.error("Fetch error:", err);
-    alert('Error fetching goal.');
-  } finally {
-    showLoading(false);
-  }
-});
-
-/* --- Add calories manually --- */
-document.getElementById('addCaloriesBtn').addEventListener('click', () => {
-  const input = document.getElementById('manualCalories');
-  const amount = Number(input.value);
-  if (!amount || amount <= 0) return alert(lang === "en" ? "Enter valid calories" : "أدخل عدد سعرات صالح");
-
-  current += amount;
-  if (current > goal) current = goal;
-
-  document.getElementById('calorieBar').value = current;
-  document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
-  input.value = "";
-});
-
-/* --- Upload image --- */
-document.getElementById('sendImage').addEventListener('click', async () => {
-  const file = document.getElementById('mealImage').files[0];
-  if (!file) return alert('Upload an image first');
-
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('goal', goal);
-  formData.append('current', current);
-
-  showLoading(true);
-  try {
-    const res = await fetch('https://YOUR-N8N-URL/webhook/meal-image', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await res.json();
-    const calories = Number(result.mealCalories) || 0;
-    current += calories;
-    if (current > goal) current = goal;
-
-    document.getElementById('calorieBar').value = current;
-    document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
-  } catch (err) {
-    alert('Error uploading image.');
-  } finally {
-    showLoading(false);
-  }
-});
-
-/* --- Upload button triggers file input --- */
-const uploadBtn = document.getElementById('uploadBtn');
-if (uploadBtn) {
-  uploadBtn.addEventListener('click', () => {
-    const fileInput = document.getElementById('mealImage');
-    if (fileInput) fileInput.click();
-  });
-}
 </script>
 </body>
 </html>
