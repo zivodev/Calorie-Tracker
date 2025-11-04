@@ -14,15 +14,16 @@
     top: 58px;
     right: 10px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: center;
     gap: 8px;
     z-index: 1000;
-    background: rgba(20, 20, 20, 0.4);
-    backdrop-filter: blur(8px);
-    padding: 6px 10px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.1);
   }
+  .theme-toggle { background: rgba(20,20,20,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--text); border-radius: 12px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .theme-toggle .arrow { transition: transform 0.2s ease; }
+  .theme-list { background: rgba(20,20,20,0.4); backdrop-filter: blur(8px); padding: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 8px; }
+  .theme-selector.collapsed .theme-list { display: none; }
+  .theme-selector.collapsed .theme-toggle .arrow { transform: rotate(180deg); }
 
   .theme-circle {
     width: 20px;
@@ -493,13 +494,16 @@
   <div id="loadingBar"></div>
   <div class="container" dir="ltr">
     <button id="langBtn">ع</button>
-    <div class="theme-selector" aria-label="Theme selector">
-      <div class="theme-circle" data-theme="default" title="Default">✓</div>
-      <div class="theme-circle" data-theme="sunset" title="Sunset"></div>
-      <div class="theme-circle" data-theme="ocean" title="Ocean"></div>
-      <div class="theme-circle" data-theme="forest" title="Forest"></div>
-      <div class="theme-circle" data-theme="neon" title="Neon"></div>
-      <div class="theme-circle" data-theme="lavender" title="Lavender"></div>
+    <div id="themeSelector" class="theme-selector collapsed" aria-label="Theme selector">
+      <button id="themeToggle" class="theme-toggle" aria-expanded="false" title="Themes"><span class="theme-icon">⛰️</span><span class="arrow">⌄</span></button>
+      <div class="theme-list">
+        <button class="theme-circle" data-theme="default" title="Default"></button>
+        <button class="theme-circle" data-theme="sunset" title="Sunset"></button>
+        <button class="theme-circle" data-theme="ocean" title="Ocean"></button>
+        <button class="theme-circle" data-theme="forest" title="Forest"></button>
+        <button class="theme-circle" data-theme="neon" title="Neon"></button>
+        <button class="theme-circle" data-theme="lavender" title="Lavender"></button>
+      </div>
     </div>
     <div class="brand" aria-label="CalorieScope">
       <img src="logo.png" alt="" />
@@ -783,6 +787,16 @@ applyTheme(currentTheme);
 document.querySelectorAll('.theme-circle').forEach(el => {
   el.addEventListener('click', () => applyTheme(el.getAttribute('data-theme')));
 });
+
+// Theme selector toggle (collapsed by default)
+const themeToggle = document.getElementById('themeToggle');
+const themeSelector = document.getElementById('themeSelector');
+if (themeToggle && themeSelector) {
+  themeToggle.addEventListener('click', () => {
+    const isCollapsed = themeSelector.classList.toggle('collapsed');
+    themeToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+  });
+}
 
 function saveState() {
   try {
