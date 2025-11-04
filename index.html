@@ -7,314 +7,355 @@
 <link rel="icon" type="image/png" href="logo.png">
 
 <style>
-  /* ✅ Load your custom font (converted from TTC to WOFF2) */
-  @font-face {
-    font-family: 'Baskerville';
-    src: url('Baskerville.woff2') format('woff2'),
-         url('Baskerville.woff') format('woff');
-    font-display: swap;
-  }
+@font-face {
+  font-family: 'Baskerville';
+  src: url('Baskerville.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Baskerville', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
 
-  :root {
-    --control-width: 180px;
-    --control-height: 44px;
-  }
+/* Everything else from your original code follows unchanged */
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
 
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Baskerville', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: #111;
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-  }
+.brand img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
 
-  /* Brand header */
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 16px;
-  }
+.brand-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
 
-  .brand img {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+}
 
-  .brand-title {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-  }
+/* Floating language button */
+#langBtn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: #d3a15d;
+  color: #111;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 32px;
+  text-align: center;
+  padding: 0;
+  z-index: 1000;
+  transition: background 0.3s, transform 0.2s;
+}
 
-  .container {
-    width: 100%;
-    max-width: 400px;
-    padding: 20px;
-    box-sizing: border-box;
-    position: relative;
-  }
+#langBtn:hover {
+  background: #e2b56f;
+  transform: scale(1.1);
+}
 
-  /* Floating language button */
-  #langBtn {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: #d3a15d;
-    color: #111;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 32px;
-    text-align: center;
-    padding: 0;
-    z-index: 1000;
-    transition: background 0.3s, transform 0.2s;
-  }
+/* Loading bar */
+#loadingBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 0%;
+  background: linear-gradient(90deg, #d3a15d, #f0c57a);
+  transition: width 0.3s ease;
+  z-index: 2000;
+}
 
-  #langBtn:hover {
-    background: #e2b56f;
-    transform: scale(1.1);
-  }
+@keyframes loadingPulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
 
-  /* Loading bar */
-  #loadingBar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 4px;
-    width: 0%;
-    background: linear-gradient(90deg, #d3a15d, #f0c57a);
-    transition: width 0.3s ease;
-    z-index: 2000;
-  }
+#loadingBar.active {
+  width: 100%;
+  animation: loadingPulse 1s infinite;
+}
 
-  @keyframes loadingPulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-  }
+#forgetGoalBtn {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 1100;
+}
+#forgetGoalBtn:hover { background: #2a2a2a; transform: scale(1.05); }
 
-  #loadingBar.active {
-    width: 100%;
-    animation: loadingPulse 1s infinite;
-  }
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 40px;
+}
 
-  /* Change info button */
-  #forgetGoalBtn {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: background 0.2s, transform 0.2s;
-    z-index: 1100;
-  }
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
 
-  #forgetGoalBtn:hover { background: #2a2a2a; transform: scale(1.05); }
+input, select {
+  background: #222;
+  color: #fff;
+}
 
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 40px;
-  }
+button[type="submit"], #sendImage {
+  background: #d3a15d;
+  color: #111;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-  input, select, button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: none;
-    box-sizing: border-box;
-    font-family: inherit; /* ✅ ensures font applies everywhere */
-  }
+button:hover {
+  background: #e2b56f;
+  transform: scale(1.05);
+}
 
-  input, select {
-    background: #222;
-    color: #fff;
-  }
+#goalDisplay, #progressContainer {
+  text-align: center;
+  margin-top: 20px;
+}
 
-  button[type="submit"], #sendImage {
-    background: #d3a15d;
-    color: #111;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+progress {
+  width: 100%;
+  height: 18px;
+}
 
-  button:hover {
-    background: #e2b56f;
-    transform: scale(1.05);
-  }
+/* Manual calorie input */
+.manualAdd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
 
-  #goalDisplay, #progressContainer {
-    text-align: center;
-    margin-top: 20px;
-  }
+#manualCalories {
+  flex: 1;
+  font-size: 20px;
+  padding: 18px;
+  text-align: center;
+  border-radius: 12px;
+  background: #222;
+  color: #fff;
+  border: 2px solid #333;
+}
 
-  progress {
-    width: 100%;
-    height: 18px;
-  }
+#addCaloriesBtn {
+  background: #d3a15d;
+  color: #111;
+  font-weight: 700;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 55px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
 
-  /* Manual calorie input */
-  .manualAdd {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-  }
+#addCaloriesBtn:hover {
+  background: #e2b56f;
+  transform: scale(1.1);
+}
 
+#sendImage {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 55px;
+  padding: 0;
+}
+
+@media (max-width: 480px) {
   #manualCalories {
-    flex: 1;
-    font-size: 20px;
-    padding: 18px;
-    text-align: center;
-    border-radius: 12px;
-    background: #222;
-    color: #fff;
-    border: 2px solid #333;
+    font-size: 18px;
+    padding: 16px;
   }
 
   #addCaloriesBtn {
-    background: #d3a15d;
-    color: #111;
-    font-weight: 700;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: 22px;
-    line-height: 55px;
-    text-align: center;
-    transition: all 0.2s ease;
-  }
-
-  #addCaloriesBtn:hover {
-    background: #e2b56f;
-    transform: scale(1.1);
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    line-height: 50px;
   }
 
   #sendImage {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 55px;
-    padding: 0;
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    line-height: 50px;
   }
+}
 
-  @media (max-width: 480px) {
-    #manualCalories {
-      font-size: 18px;
-      padding: 16px;
-    }
+.actionsColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
 
-    #addCaloriesBtn {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
+.uploadRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
 
-    #sendImage {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
-  }
+.uploadStatus {
+  font-size: 13px;
+  color: #bbb;
+}
 
-  .actionsColumn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 16px;
-  }
+.uploadStatus.success { color: #5dd39e; }
+.uploadStatus.selected { color: #e2b56f; }
 
-  .uploadRow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-  }
+#imagePreview {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: none;
+  border: 2px solid #333;
+}
 
-  .uploadStatus {
-    font-size: 13px;
-    color: #bbb;
-  }
+#mealImage { display: none; }
 
-  .uploadStatus.success { color: #5dd39e; }
-  .uploadStatus.selected { color: #e2b56f; }
+#uploadBtn {
+  background: #222;
+  color: #fff;
+  border: 2px solid #333;
+  cursor: pointer;
+  transition: 0.2s;
+  width: var(--control-width);
+  height: var(--control-height);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
 
-  #imagePreview {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    object-fit: cover;
-    display: none;
-    border: 2px solid #333;
-  }
+#uploadBtn:hover { background: #2a2a2a; }
 
-  #mealImage { display: none; }
+#sendImage {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 
-  #uploadBtn {
-    background: #222;
-    color: #fff;
-    border: 2px solid #333;
-    cursor: pointer;
-    transition: 0.2s;
-    width: var(--control-width);
-    height: var(--control-height);
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-  }
-
-  #uploadBtn:hover { background: #2a2a2a; }
-
-  #sendImage {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  .macroProgress p { margin: 6px 0; font-size: 14px; color: #ddd; }
+.macroProgress p { margin: 6px 0; font-size: 14px; color: #ddd; }
 </style>
 </head>
 
 <body>
-  <!-- ✅ Your existing HTML and JS code goes here exactly as before -->
+<div class="container">
+  <div class="brand">
+    <img src="logo.png" alt="CalorieScope Logo">
+    <div class="brand-title">CalorieScope</div>
+  </div>
+
+  <form id="goalForm">
+    <select id="gender">
+      <option value="">Select gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+    <input type="number" id="age" placeholder="Age" required>
+    <input type="number" id="height" placeholder="Height (cm)" required>
+    <input type="number" id="weight" placeholder="Weight (kg)" required>
+    <select id="activity">
+      <option value="">Activity level</option>
+      <option value="sedentary">Sedentary</option>
+      <option value="light">Lightly Active</option>
+      <option value="moderate">Moderately Active</option>
+      <option value="active">Active</option>
+      <option value="very_active">Very Active</option>
+    </select>
+    <button type="submit">Calculate Goal</button>
+  </form>
+
+  <div id="goalDisplay"></div>
+  <div id="progressContainer"></div>
+</div>
+
+<script>
+document.getElementById("goalForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("gender", document.getElementById("gender").value);
+  formData.append("age", document.getElementById("age").value);
+  formData.append("height", document.getElementById("height").value);
+  formData.append("weight", document.getElementById("weight").value);
+  formData.append("activity", document.getElementById("activity").value);
+
+  const res = await fetch("https://zivodev.app.n8n.cloud/webhook/eff0e03c-8382-4f7f-a60b-05dfee430173", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+  document.getElementById("goalDisplay").innerText = "Daily Calorie Goal: " + data.dailyGoal + " kcal";
+});
+</script>
 </body>
 </html>
