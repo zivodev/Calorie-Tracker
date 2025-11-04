@@ -104,8 +104,8 @@
     margin: 0;
     padding: 0;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: #111;
-    color: #fff;
+    background: var(--bg, #111);
+    color: var(--text, #fff);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -146,7 +146,7 @@
     position: fixed;
     top: 15px;
     right: 15px;
-    background: #d3a15d;
+    background: var(--accent, #d3a15d);
     color: #111;
     border: none;
     width: 32px;
@@ -163,7 +163,7 @@
   }
 
   #langBtn:hover {
-    background: #e2b56f;
+    background: var(--accent-hover, #e2b56f);
     transform: scale(1.1);
   }
 
@@ -234,7 +234,7 @@
   }
 
   button[type="submit"], #sendImage {
-    background: #d3a15d;
+    background: var(--accent, #d3a15d);
     color: #111;
     font-weight: 600;
     cursor: pointer;
@@ -242,7 +242,7 @@
   }
 
   button:hover {
-    background: #e2b56f;
+    background: var(--accent-hover, #e2b56f);
     transform: scale(1.05);
   }
 
@@ -277,7 +277,7 @@
   }
 
   #addCaloriesBtn {
-    background: #d3a15d;
+    background: var(--accent, #d3a15d);
     color: #111;
     font-weight: 700;
     width: 55px;
@@ -292,7 +292,7 @@
   }
 
   #addCaloriesBtn:hover {
-    background: #e2b56f;
+    background: var(--accent-hover, #e2b56f);
     transform: scale(1.1);
   }
 
@@ -441,6 +441,19 @@
   }
 
   .macroProgress p { margin: 6px 0; font-size: 14px; color: #ddd; }
+  /* Collapsible user panel */
+  .panel { margin-top: 20px; border: 1px solid #333; border-radius: 12px; overflow: hidden; background: #181818; }
+  .panelHeader { width: 100%; background: #222; color: var(--text); border: none; padding: 12px 14px; text-align: left; display: none; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; cursor: pointer; }
+  .panelHeader .arrow { transition: transform 0.25s ease; }
+  .panelHeader[aria-expanded="true"] .arrow { transform: rotate(180deg); }
+  .panelBody { overflow: hidden; max-height: 1000px; transition: max-height 0.35s ease; }
+  .panelBody.minimized { max-height: 0; }
+
+  /* Loading overlay */
+  #loadingOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 3000; }
+  #loadingOverlay.active { display: flex; }
+  .spinner { width: 72px; height: 72px; border-radius: 50%; border: 6px solid rgba(255,255,255,0.15); border-top-color: var(--accent, #d3a15d); animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   /* Circular calorie progress */
   .circleWrap {
     width: 200px;
@@ -484,12 +497,23 @@
   <div id="loadingBar"></div>
   <div class="container" dir="ltr">
     <button id="langBtn">ع</button>
+    <div class="theme-selector" aria-label="Theme selector">
+      <div class="theme-circle" data-theme="default" title="Default">✓</div>
+      <div class="theme-circle" data-theme="sunset" title="Sunset"></div>
+      <div class="theme-circle" data-theme="ocean" title="Ocean"></div>
+      <div class="theme-circle" data-theme="forest" title="Forest"></div>
+      <div class="theme-circle" data-theme="neon" title="Neon"></div>
+      <div class="theme-circle" data-theme="lavender" title="Lavender"></div>
+    </div>
     <div class="brand" aria-label="CalorieScope">
       <img src="logo.png" alt="" />
       <span class="brand-title">CalorieScope</span>
     </div>
 
-    <form id="userForm">
+    <div id="userPanel" class="panel">
+      <button id="panelToggle" class="panelHeader" aria-expanded="true"><span id="panelTitle">Your info</span><span class="arrow">⌃</span></button>
+      <div id="panelBody" class="panelBody">
+      <form id="userForm">
       <input type="number" id="age" placeholder="Age" required />
       <input type="number" id="weight" placeholder="Weight (kg)" required />
       <input type="number" id="height" placeholder="Height (cm)" required />
@@ -520,7 +544,9 @@
       </select>
 
       <button type="submit">Get Calorie Goal</button>
-    </form>
+      </form>
+      </div>
+    </div>
 
     <!-- renamed display div so it doesn't conflict with the select id="goal" -->
     <div id="goalDisplay"></div>
@@ -577,6 +603,7 @@
     </div>
   </div>
   <button id="forgetGoalBtn" type="button" aria-label="Change information" title="Change information">⟲</button>
+  <div id="loadingOverlay"><div class="spinner" aria-label="Loading"></div></div>
 
 <script>
 let goal = 0;
@@ -588,6 +615,7 @@ let fatGoalTarget = 0;
 let proteinCurrent = 0;
 let carbCurrent = 0;
 let fatCurrent = 0;
+let currentTheme = 'default';
 
 const texts = {
   en: {
@@ -702,6 +730,8 @@ function updateLang() {
   if (uploadStatus) { uploadStatus.textContent = t.uploadNone; uploadStatus.className = 'uploadStatus'; }
   const forgetBtn = document.getElementById('forgetGoalBtn');
   if (forgetBtn) forgetBtn.title = t.forgetGoalTitle;
+  const panelTitle = document.getElementById('panelTitle');
+  if (panelTitle) panelTitle.textContent = lang === 'ar' ? 'معلوماتك' : 'Your info';
 
   if (goal > 0) {
     document.getElementById('goalDisplay').textContent = `${t.goalText} ${goal} kcal`;
@@ -719,9 +749,10 @@ function updateLang() {
 }
 
 function showLoading(show) {
-  const bar = document.getElementById('loadingBar');
-  if (show) bar.classList.add('active');
-  else bar.classList.remove('active');
+  const overlay = document.getElementById('loadingOverlay');
+  if (!overlay) return;
+  if (show) overlay.classList.add('active');
+  else overlay.classList.remove('active');
 }
 
 document.getElementById("langBtn").addEventListener("click", () => {
@@ -736,6 +767,26 @@ try {
   if (savedLang === 'en' || savedLang === 'ar') lang = savedLang;
 } catch {}
 updateLang();
+
+// Theme setup
+function applyTheme(theme) {
+  currentTheme = theme || 'default';
+  try { localStorage.setItem('cs_theme', currentTheme); } catch {}
+  document.body.setAttribute('data-theme', currentTheme);
+  const circles = document.querySelectorAll('.theme-circle');
+  circles.forEach(c => {
+    if (c.getAttribute('data-theme') === currentTheme) c.classList.add('active');
+    else c.classList.remove('active');
+  });
+}
+try {
+  const savedTheme = localStorage.getItem('cs_theme');
+  if (savedTheme) currentTheme = savedTheme;
+} catch {}
+applyTheme(currentTheme);
+document.querySelectorAll('.theme-circle').forEach(el => {
+  el.addEventListener('click', () => applyTheme(el.getAttribute('data-theme')));
+});
 
 function saveState() {
   try {
@@ -847,6 +898,15 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     carbCurrent = 0;
     fatCurrent = 0;
     updateMacroBars();
+
+    // Minimize the panel after generating goal
+    const body = document.getElementById('panelBody');
+    const header = document.getElementById('panelToggle');
+    if (body && header) {
+      header.style.display = 'flex';
+      body.classList.add('minimized');
+      header.setAttribute('aria-expanded', 'false');
+    }
 
   } catch (err) {
     console.error("Fetch error:", err);
@@ -987,6 +1047,27 @@ if (forgetBtn) {
     document.getElementById('goalDisplay').textContent = '';
     updateCalorieCircle();
     updateMacroBars();
+    const body = document.getElementById('panelBody');
+    const header = document.getElementById('panelToggle');
+    if (body && header) {
+      header.style.display = 'none';
+      body.classList.remove('minimized');
+      header.setAttribute('aria-expanded', 'true');
+    }
+  });
+}
+
+// Panel toggle handler
+const panelToggle = document.getElementById('panelToggle');
+if (panelToggle) {
+  panelToggle.addEventListener('click', () => {
+    const body = document.getElementById('panelBody');
+    const expanded = panelToggle.getAttribute('aria-expanded') === 'true';
+    if (body) {
+      if (expanded) body.classList.add('minimized');
+      else body.classList.remove('minimized');
+    }
+    panelToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
   });
 }
 </script>
