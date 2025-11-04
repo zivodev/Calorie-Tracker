@@ -634,7 +634,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     const res = await fetch('https://zivodev.app.n8n.cloud/webhook-test/eff0e03c-8382-4f7f-a60b-05dfee430173', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: fromData
     });
 
     const text = await res.text();
