@@ -238,6 +238,23 @@
     user-select: none;
   }
 
+  .uploadStatus {
+    font-size: 13px;
+    color: #bbb;
+  }
+
+  .uploadStatus.success { color: #5dd39e; }
+  .uploadStatus.selected { color: #e2b56f; }
+
+  #imagePreview {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: none;
+    border: 2px solid #333;
+  }
+
   /* Unified small circular button style */
   .circleBtn {
     width: 44px;
@@ -368,6 +385,8 @@
           <input type="file" id="mealImage" accept="image/*" />
           <button id="uploadBtn" type="button" aria-label="Upload">⬆ Add a photo</button>
           <button id="sendImage" class="circleBtn" type="button" aria-label="Send">➤</button>
+          <img id="imagePreview" alt="preview" />
+          <span id="uploadStatus" class="uploadStatus"></span>
         </div>
 
         <!-- Manual calorie input (bottom) -->
@@ -403,6 +422,16 @@ const texts = {
     goalText: "Your daily goal:",
     switchIcon: "ع",
     manualAdd: "Add calories manually",
+    addPhoto: "Add a photo",
+    uploadNone: "No photo selected",
+    uploadSelected: "Selected:",
+    uploadSuccess: "Uploaded!",
+    goalLabel: "Goal",
+    goalMaintain: "Maintain weight",
+    goalLose: "Lose weight",
+    goalGain: "Gain weight",
+    goalMuscle: "Muscle gain",
+    goalCut: "Fat loss (cut)"
   },
   ar: {
     age: "العمر",
@@ -422,6 +451,16 @@ const texts = {
     goalText: "هدفك اليومي:",
     switchIcon: "e",
     manualAdd: "أضف السعرات يدويًا",
+    addPhoto: "أضف صورة",
+    uploadNone: "لم يتم اختيار صورة",
+    uploadSelected: "تم الاختيار:",
+    uploadSuccess: "تم الرفع!",
+    goalLabel: "الهدف",
+    goalMaintain: "الحفاظ على الوزن",
+    goalLose: "خسارة الوزن",
+    goalGain: "زيادة الوزن",
+    goalMuscle: "زيادة العضلات",
+    goalCut: "خفض الدهون (تنشيف)"
   }
 };
 
@@ -448,11 +487,23 @@ function updateLang() {
   activity.options[4].text = t.active;
   activity.options[5].text = t.very_active;
 
+  const goalSel = document.getElementById('goal');
+  if (goalSel && goalSel.options.length >= 6) {
+    goalSel.options[0].text = t.goalLabel;
+    goalSel.options[1].text = t.goalMaintain;
+    goalSel.options[2].text = t.goalLose;
+    goalSel.options[3].text = t.goalGain;
+    goalSel.options[4].text = t.goalMuscle;
+    goalSel.options[5].text = t.goalCut;
+  }
+
   document.querySelector('button[type="submit"]').textContent = t.submit;
   document.getElementById('sendImage').textContent = t.send;
   document.getElementById('langBtn').textContent = t.switchIcon;
   const addPhotoLabel = document.getElementById('addPhotoLabel');
   if (addPhotoLabel) addPhotoLabel.textContent = t.addPhoto;
+  const uploadStatus = document.getElementById('uploadStatus');
+  if (uploadStatus) { uploadStatus.textContent = t.uploadNone; uploadStatus.className = 'uploadStatus'; }
 
   if (goal > 0) {
     document.getElementById('goalDisplay').textContent = `${t.goalText} ${goal} kcal`;
@@ -560,6 +611,9 @@ document.getElementById('sendImage').addEventListener('click', async () => {
 
     document.getElementById('calorieBar').value = current;
     document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
+
+    const status = document.getElementById('uploadStatus');
+    if (status) { status.textContent = texts[lang].uploadSuccess; status.className = 'uploadStatus success'; }
   } catch (err) {
     alert('Error uploading image.');
   } finally {
@@ -573,6 +627,26 @@ if (uploadBtn) {
   uploadBtn.addEventListener('click', () => {
     const fileInput = document.getElementById('mealImage');
     if (fileInput) fileInput.click();
+  });
+}
+
+/* --- Show selected image + status --- */
+const mealInput = document.getElementById('mealImage');
+if (mealInput) {
+  mealInput.addEventListener('change', () => {
+    const file = mealInput.files && mealInput.files[0];
+    const status = document.getElementById('uploadStatus');
+    const preview = document.getElementById('imagePreview');
+    if (!file) {
+      if (status) { status.textContent = texts[lang].uploadNone; status.className = 'uploadStatus'; }
+      if (preview) { preview.src = ''; preview.style.display = 'none'; }
+      return;
+    }
+    if (status) { status.textContent = `${texts[lang].uploadSelected} ${file.name}`; status.className = 'uploadStatus selected'; }
+    if (preview) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'inline-block';
+    }
   });
 }
 </script>
