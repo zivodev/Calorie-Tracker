@@ -705,12 +705,24 @@ document.getElementById('sendImage').addEventListener('click', async () => {
     const text = await res.text();
     let result;
     try { result = JSON.parse(text); } catch { result = {}; }
-    const calories = Number(result.mealCalories) || 0;
-    current += calories;
+    // Try multiple common keys for calories from webhook
+    const possibleKeys = ['mealCalories', 'calories', 'kcal', 'addedCalories', 'deltaCalories'];
+    let added = 0;
+    for (const k of possibleKeys) {
+      if (result && result[k] != null && result[k] !== '') {
+        const n = Number(result[k]);
+        if (!Number.isNaN(n) && Number.isFinite(n)) { added = n; break; }
+      }
+    }
+    current += added;
     if (current > goal) current = goal;
 
     document.getElementById('calorieBar').value = current;
     document.getElementById('progressText').textContent = `${current} / ${goal} kcal`;
+    if (added > 0) {
+      const msg = lang === 'en' ? `+${added} kcal added` : `+${added} سعر حراري`;
+      try { console.info(msg); } catch {}
+    }
 
     const status = document.getElementById('uploadStatus');
     if (status) { status.textContent = texts[lang].uploadSuccess; status.className = 'uploadStatus success'; }
