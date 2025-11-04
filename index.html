@@ -400,6 +400,11 @@
           <button id="sendImage" class="circleBtn" type="button" aria-label="Send">➤</button>
         </div>
 
+        <!-- Remote image URL fallback -->
+        <div class="uploadRow">
+          <input type="url" id="imageUrl" placeholder="Image URL (https://...)" />
+        </div>
+
         <!-- Manual calorie input (bottom) -->
         <div class="manualAdd">
           <input type="number" id="manualCalories" placeholder="Add calories manually" />
@@ -408,6 +413,7 @@
       </div>
     </div>
   </div>
+  <button id="forgetGoalBtn" type="button" aria-label="Forget today's goal" title="Forget today's goal">⟲</button>
 
 <script>
 let goal = 0;
@@ -448,7 +454,9 @@ const texts = {
     goalLose: "Lose weight",
     goalGain: "Gain weight",
     goalMuscle: "Muscle gain",
-    goalCut: "Fat loss (cut)"
+    goalCut: "Fat loss (cut)",
+    imageUrlPlaceholder: "Image URL (https://...)"
+    ,forgetGoalTitle: "Forget today's goal"
   },
   ar: {
     age: "العمر",
@@ -480,7 +488,9 @@ const texts = {
     goalLose: "خسارة الوزن",
     goalGain: "زيادة الوزن",
     goalMuscle: "زيادة العضلات",
-    goalCut: "خفض الدهون (تنشيف)"
+    goalCut: "خفض الدهون (تنشيف)",
+    imageUrlPlaceholder: "رابط الصورة (https://...)"
+    ,forgetGoalTitle: "حذف هدف اليوم"
   }
 };
 
@@ -526,6 +536,10 @@ function updateLang() {
   if (uploadBtnEl) uploadBtnEl.textContent = `⬆ ${t.addPhoto}`;
   const uploadStatus = document.getElementById('uploadStatus');
   if (uploadStatus) { uploadStatus.textContent = t.uploadNone; uploadStatus.className = 'uploadStatus'; }
+  const forgetBtn = document.getElementById('forgetGoalBtn');
+  if (forgetBtn) forgetBtn.title = t.forgetGoalTitle;
+  const imageUrlInput = document.getElementById('imageUrl');
+  if (imageUrlInput) imageUrlInput.placeholder = t.imageUrlPlaceholder;
 
   if (goal > 0) {
     document.getElementById('goalDisplay').textContent = `${t.goalText} ${goal} kcal`;
@@ -666,10 +680,15 @@ document.getElementById('addCaloriesBtn').addEventListener('click', () => {
 /* --- Upload image --- */
 document.getElementById('sendImage').addEventListener('click', async () => {
   const file = document.getElementById('mealImage').files[0];
-  if (!file) return alert('Upload an image first');
+  const imageUrl = (document.getElementById('imageUrl') && document.getElementById('imageUrl').value.trim()) || '';
+  if (!file && !imageUrl) return alert(lang === 'en' ? 'Upload an image first' : 'قم برفع صورة أولاً');
 
   const formData = new FormData();
-  formData.append('image', file);
+  if (file) {
+    formData.append('image', file);
+  } else if (imageUrl) {
+    formData.append('imageUrl', imageUrl);
+  }
   formData.append('goal', goal);
   formData.append('current', current);
 
@@ -724,6 +743,47 @@ if (mealInput) {
       preview.src = URL.createObjectURL(file);
       preview.style.display = 'inline-block';
     }
+  });
+}
+
+// If user pastes a URL and not a file, show selected status + preview
+const imageUrlField = document.getElementById('imageUrl');
+if (imageUrlField) {
+  imageUrlField.addEventListener('input', () => {
+    const val = imageUrlField.value.trim();
+    const status = document.getElementById('uploadStatus');
+    const preview = document.getElementById('imagePreview');
+    if (!val) {
+      if (status) { status.textContent = texts[lang].uploadNone; status.className = 'uploadStatus'; }
+      if (preview) { preview.src = ''; preview.style.display = 'none'; }
+      return;
+    }
+    if (status) { status.textContent = texts[lang].uploadSelected; status.className = 'uploadStatus success'; }
+    if (preview) {
+      preview.src = val;
+      preview.style.display = 'inline-block';
+    }
+  });
+}
+
+/* --- Forget today's goal and calories --- */
+const forgetBtn = document.getElementById('forgetGoalBtn');
+if (forgetBtn) {
+  forgetBtn.addEventListener('click', () => {
+    const key = getDateKey();
+    try {
+      localStorage.removeItem(`cs_goal_${key}`);
+      localStorage.removeItem(`cs_current_${key}`);
+    } catch {}
+    goal = 0;
+    current = 0;
+    const pc = document.getElementById('progressContainer');
+    pc.style.display = 'none';
+    document.getElementById('goalDisplay').textContent = '';
+    const bar = document.getElementById('calorieBar');
+    bar.value = 0;
+    bar.max = 1;
+    document.getElementById('progressText').textContent = `0 / 0 kcal`;
   });
 }
 </script>
