@@ -5,526 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=5.0, maximum-scale=1.0" />
 <title>CalorieScope</title>
 <link rel="icon" type="image/png" href="logo.png">
-<style>
-  /* THEME SELECTOR */
 
-
-  .theme-selector { 
-    position: fixed;
-    top: 58px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    z-index: 500; /* lower than form to prevent covering selects */
-  }
-  .theme-toggle { background: rgba(20,20,20,0.5); border: 2px solid rgba(255,255,255,0.15); color: var(--text); border-radius: 10px; padding: 4px 8px; display: inline-flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-  .theme-toggle svg { width: 16px; height: 16px; }
-  .theme-toggle .arrow { transition: transform 0.2s ease; font-size: 11px; opacity: 0.9; }
-  .theme-list { background: rgba(20,20,20,0.4); backdrop-filter: blur(8px); padding: 8px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 8px; overflow: hidden; max-height: 240px; transition: max-height 0.25s ease, padding 0.25s ease, border-width 0.25s ease, opacity 0.2s ease; }
-  .theme-selector.collapsed .theme-list { max-height: 0; padding: 0; border-width: 0; opacity: 0; }
-  .theme-selector.collapsed .theme-toggle .arrow { transform: rotate(180deg); }
-
-  .theme-circle {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s, box-shadow 0.3s;
-    font-size: 12px;
-    color: white;
-  }
-
-  .theme-circle:hover {
-    transform: scale(1.3);
-    box-shadow: 0 0 8px var(--accent);
-  }
-  
-  .theme-circle.active {
-    box-shadow: 0 0 10px 2px var(--accent);
-  }
-
-  .theme-circle[data-theme="default"] { background: linear-gradient(135deg, #d3a15d, #e2b56f); }
-  .theme-circle[data-theme="sunset"] { background: linear-gradient(135deg, #ff7f50, #ffa07a); }
-  .theme-circle[data-theme="ocean"] { background: linear-gradient(135deg, #4fc3f7, #01579b); }
-  .theme-circle[data-theme="forest"] { background: linear-gradient(135deg, #388e3c, #1b5e20); }
-  .theme-circle[data-theme="neon"] { background: linear-gradient(135deg, #00e5ff, #1de9b6); }
-  .theme-circle[data-theme="lavender"] { background: linear-gradient(135deg, #ba68c8, #7b1fa2); }
-  [data-theme="sunset"] {
-    --bg: #1b0b17;
-    --text: #ffe8d6;
-    --accent: #ff7f50;
-    --accent-hover: #ffa07a;
-    --input-bg: rgba(80, 40, 60, 0.5);
-  }
-
-  [data-theme="ocean"] {
-    --bg: #0b1d2e;
-    --text: #e0f7ff;
-    --accent: #4fc3f7;
-    --accent-hover: #81d4fa;
-    --input-bg: rgba(20, 60, 80, 0.5);
-  }
-
-  [data-theme="forest"] {
-    --bg: #122c17;
-    --text: #e6ffe6;
-    --accent: #66bb6a;
-    --accent-hover: #81c784;
-    --input-bg: rgba(20, 60, 20, 0.5);
-  }
-
-  [data-theme="neon"] {
-    --bg: #000;
-    --text: #fff;
-    --accent: #00e5ff;
-    --accent-hover: #1de9b6;
-    --input-bg: rgba(30, 30, 30, 0.6);
-  }
-
-  [data-theme="lavender"] {
-    --bg: #1b102e;
-    --text: #f3e5f5;
-    --accent: #ce93d8;
-    --accent-hover: #ba68c8;
-    --input-bg: rgba(50, 30, 70, 0.5);
-  }
-  :root {
-    --control-width: 180px;
-    --control-height: 44px;
-  }
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: var(--bg, #111);
-    color: var(--text, #fff);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-  }
-
-  /* Brand header */
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  .brand img {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-
-  .brand-title {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-  }
-
-  .container {
-    width: 100%;
-    max-width: 400px;
-    padding: 20px;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 800; /* ensure form content stacks above theme selector */
-  }
-
-  /* Floating language button */
-  #langBtn {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: var(--accent, #d3a15d);
-    color: #111;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 32px;
-    text-align: center;
-    padding: 0;
-    z-index: 1000;
-    transition: background 0.3s, transform 0.2s;
-  }
-
-  #langBtn:hover {
-    background: var(--accent-hover, #e2b56f);
-    transform: scale(1.1);
-  }
-
-  /* Loading bar */
-  #loadingBar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 4px;
-    width: 0%;
-    background: linear-gradient(90deg, #d3a15d, #f0c57a);
-    transition: width 0.3s ease;
-    z-index: 2000;
-  }
-
-  @keyframes loadingPulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
-  }
-
-  #loadingBar.active {
-    width: 100%;
-    animation: loadingPulse 1s infinite;
-  }
-
-  /* Change info button */
-  #forgetGoalBtn {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: background 0.2s, transform 0.2s;
-    z-index: 1100;
-  }
-
-  #forgetGoalBtn:hover { background: #2a2a2a; transform: scale(1.05); }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 40px;
-  }
-
-  input, select, button {
-    width: 100%;
-    padding: 14px; /* slightly larger for better dropdown trigger */
-    font-size: 17px;
-    border-radius: 10px;
-    border: none;
-    box-sizing: border-box;
-  }
-  /* Help native select dropdown appear above overlays */
-  select { position: relative; z-index: 1200; }
-
-  input, select {
-    background: #222;
-    color: #fff;
-  }
-
-  button[type="submit"], #sendImage {
-    background: var(--accent, #d3a15d);
-    color: #111;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-    position: relative;
-    z-index: 10;
-  }
-
-  button:hover {
-    background: var(--accent-hover, #e2b56f);
-    transform: scale(1.05);
-    z-index: 20;
-  }
-
-  #goalDisplay, #progressContainer {
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  progress {
-    width: 100%;
-    height: 18px;
-  }
-
-  /* Manual calorie input */
-  .manualAdd {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-  }
-
-  #manualCalories {
-    flex: 1;
-    font-size: 20px;
-    padding: 18px;
-    text-align: center;
-    border-radius: 12px;
-    background: #222;
-    color: #fff;
-    border: 2px solid #333;
-  }
-
-  #addCaloriesBtn {
-    background: var(--accent, #d3a15d);
-    color: #111;
-    font-weight: 700;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: 22px;
-    line-height: 55px;
-    text-align: center;
-    transition: all 0.2s ease;
-  }
-
-  #addCaloriesBtn:hover {
-    background: var(--accent-hover, #e2b56f);
-    transform: scale(1.1);
-  }
-
-  #sendImage {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 55px;
-    padding: 0;
-  }
-
-  @media (max-width: 480px) {
-    #manualCalories {
-      font-size: 18px;
-      padding: 16px;
-    }
-
-    #addCaloriesBtn {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
-
-    #sendImage {
-      width: 50px;
-      height: 50px;
-      font-size: 20px;
-      line-height: 50px;
-    }
-  }
-
-  /* Actions row (manual add + send image) */
-  .actionsColumn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 16px;
-  }
-
-  .uploadRow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-  }
-
-  .uploadLabel {
-    font-size: 14px;
-    color: #ddd;
-    user-select: none;
-  }
-
-  .uploadStatus {
-    font-size: 13px;
-    color: #bbb;
-  }
-
-  .uploadStatus.success { color: #5dd39e; }
-  .uploadStatus.selected { color: #e2b56f; }
-
-  .uploadInfo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  #imagePreview {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    object-fit: cover;
-    display: none;
-    border: 2px solid #333;
-  }
-
-  /* Unified small circular button style */
-  .circleBtn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    padding: 0;
-  }
-
-  /* Make manual add smaller */
-  .manualAdd {
-    gap: 10px;
-    margin-top: 0;
-  }
-
-  #manualCalories {
-    width: var(--control-width);
-    height: var(--control-height);
-    padding: 10px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-
-  #addCaloriesBtn {
-    width: 44px;
-    height: 44px;
-    line-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
-
-  /* Upload input (hidden; use custom button) */
-  #mealImage { display: none; }
-  #uploadBtn {
-    background: #222;
-    color: #fff;
-    border: 2px solid #333;
-    cursor: pointer;
-    transition: 0.2s;
-    width: var(--control-width);
-    height: var(--control-height);
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-  }
-  #uploadBtn:hover { background: #2a2a2a; }
-
-  /* Ensure send stays perfectly circular */
-  #sendImage {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  /* Image info input */
-  #imageInfoContainer {
-    display: none;
-    margin-top: 12px;
-    width: 100%;
-  }
-
-  #imageInfo {
-    width: 100%;
-    padding: 10px;
-    font-size: 15px;
-    border-radius: 10px;
-    background: #222;
-    color: #fff;
-    border: 2px solid #333;
-    box-sizing: border-box;
-  }
-
-  #imageInfo:focus {
-    outline: none;
-    border-color: var(--accent, #d3a15d);
-  }
-
-  .macroProgress p { margin: 6px 0; font-size: 14px; color: #ddd; }
-  /* Collapsible user panel */
-  .panel { margin-top: 20px; border: 2px solid #333; border-radius: 12px; overflow: hidden; background: #181818; position: relative; }
-  .panelHeader { width: 100%; background: #222; color: var(--text); border: none; padding: 12px 14px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; cursor: pointer; position: relative; z-index: 10; transition: background 0.2s; }
-  .panelHeader:hover { background: #2a2a2a; z-index: 20; }
-  .panelHeader .arrow { transition: transform 0.25s ease; }
-  .panelHeader[aria-expanded="true"] .arrow { transform: rotate(180deg); }
-  .panelBody { overflow: hidden; max-height: 1000px; transition: max-height 0.35s ease; padding: 0 14px 18px; position: relative; }
-  .panelBody.minimized { max-height: 0; padding: 0 14px; }
-
-  /* Loading overlay */
-  #loadingOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 3000; }
-  #loadingOverlay.active { display: flex; }
-  .spinner { width: 72px; height: 72px; border-radius: 50%; border: 6px solid rgba(255,255,255,0.15); border-top-color: var(--accent, #d3a15d); animation: spin 0.9s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  /* Circular calorie progress */
-  .circleWrap {
-    width: 200px;
-    height: 200px;
-    margin: 20px auto 10px;
-    position: relative;
-  }
-  .circleWrap svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-  .circleBg { stroke: #2a2a2a; }
-  .circleFg { stroke: #d3a15d; transition: stroke-dashoffset 0.6s ease; }
-  .circleCenter {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .circleValue { font-size: 22px; font-weight: 800; }
-  .circleLabel { font-size: 12px; color: #bbb; }
-
-  /* Macro mini bars */
-  .macroProgress { margin-top: 12px; }
-  .macroBlock { margin: 10px 0 14px; }
-  .macroTitle { margin: 0 0 6px; font-size: 14px; color: #ddd; }
-  .miniBar {
-    width: 100%;
-    height: 8px;
-    background: #222;
-    border: 1px solid #333;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .miniFill { height: 100%; width: 0%; background: #5dd39e; transition: width 0.5s ease; }
-  .miniFill.carbs { background: #4fc3f7; }
-  .miniFill.fat { background: #ce93d8; }
-</style>
+<!-- External CSS -->
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div id="loadingBar"></div>
+
   <div class="container" dir="ltr">
     <button id="langBtn">ع</button>
+
     <div id="themeSelector" class="theme-selector collapsed" aria-label="Theme selector">
       <button id="themeToggle" class="theme-toggle" aria-expanded="false" title="Themes">
         <span class="theme-icon" aria-hidden="true">
@@ -534,6 +25,7 @@
         </span>
         <span class="arrow">⌄</span>
       </button>
+
       <div class="theme-list">
         <button class="theme-circle" data-theme="default" title="Default"></button>
         <button class="theme-circle" data-theme="sunset" title="Sunset"></button>
@@ -543,57 +35,61 @@
         <button class="theme-circle" data-theme="lavender" title="Lavender"></button>
       </div>
     </div>
+
     <div class="brand" aria-label="CalorieScope">
       <img src="logo.png" alt="" />
       <span class="brand-title">CalorieScope</span>
     </div>
 
     <div id="userPanel" class="panel">
-      <button id="panelToggle" class="panelHeader" aria-expanded="true"><span id="panelTitle">Body Details</span><span class="arrow">⌃</span></button>
+      <button id="panelToggle" class="panelHeader" aria-expanded="true">
+        <span id="panelTitle">Body Details</span>
+        <span class="arrow">⌃</span>
+      </button>
+
       <div id="panelBody" class="panelBody">
-      <form id="userForm">
-      <input type="number" id="age" placeholder="Age" required />
-      <input type="number" id="weight" placeholder="Weight (kg)" required />
-      <input type="number" id="height" placeholder="Height (cm)" required />
+        <form id="userForm">
+          <input type="number" id="age" placeholder="Age" required />
+          <input type="number" id="weight" placeholder="Weight (kg)" required />
+          <input type="number" id="height" placeholder="Height (cm)" required />
 
-      <select id="gender" required>
-        <option value="">Select Gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
+          <select id="gender" required>
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
 
-      <select id="activity" required>
-        <option value="">Activity Level</option>
-        <option value="sedentary">Sedentary (little or no exercise)</option>
-        <option value="light">Lightly Active (1–3 days/week)</option>
-        <option value="moderate">Moderately Active (3–5 days/week)</option>
-        <option value="active">Active (6–7 days/week)</option>
-        <option value="very_active">Very Active (hard daily exercise)</option>
-      </select>
+          <select id="activity" required>
+            <option value="">Activity Level</option>
+            <option value="sedentary">Sedentary (little or no exercise)</option>
+            <option value="light">Lightly Active (1–3 days/week)</option>
+            <option value="moderate">Moderately Active (3–5 days/week)</option>
+            <option value="active">Active (6–7 days/week)</option>
+            <option value="very_active">Very Active (hard daily exercise)</option>
+          </select>
 
-      <!-- ADDED: Goal select (exact as you provided) -->
-      <select id="goal" required>
-        <option value="">Goal</option>
-        <option value="maintain">Maintain weight</option>
-        <option value="lose">Lose weight</option>
-        <option value="gain">Gain weight</option>
-        <option value="muscle">Muscle gain</option>
-        <option value="cut">Fat loss (cut)</option>
-      </select>
+          <select id="goal" required>
+            <option value="">Goal</option>
+            <option value="maintain">Maintain weight</option>
+            <option value="lose">Lose weight</option>
+            <option value="gain">Gain weight</option>
+            <option value="muscle">Muscle gain</option>
+            <option value="cut">Fat loss (cut)</option>
+          </select>
 
-      <button type="submit">Get Calorie Goal</button>
-      </form>
+          <button type="submit">Get Calorie Goal</button>
+        </form>
       </div>
     </div>
 
-    <!-- renamed display div so it doesn't conflict with the select id="goal" -->
     <div id="goalDisplay"></div>
 
     <div id="progressContainer" style="display:none;">
       <div class="circleWrap" aria-label="Calories progress">
         <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
           <circle class="circleBg" cx="80" cy="80" r="70" stroke-width="14" fill="none"></circle>
-          <circle id="calorieProgress" class="circleFg" cx="80" cy="80" r="70" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82"></circle>
+          <circle id="calorieProgress" class="circleFg" cx="80" cy="80" r="70" stroke-width="14" fill="none"
+            stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82"></circle>
         </svg>
         <div class="circleCenter">
           <div id="progressText" class="circleValue">0 / 0 kcal</div>
@@ -606,10 +102,12 @@
           <p id="proteinText" class="macroTitle">Protein: 0g / 0g</p>
           <div class="miniBar"><div id="proteinBar" class="miniFill"></div></div>
         </div>
+
         <div class="macroBlock">
           <p id="carbsText" class="macroTitle">Carbs: 0g / 0g</p>
           <div class="miniBar"><div id="carbsBar" class="miniFill carbs"></div></div>
         </div>
+
         <div class="macroBlock">
           <p id="fatText" class="macroTitle">Fats: 0g / 0g</p>
           <div class="miniBar"><div id="fatBar" class="miniFill fat"></div></div>
@@ -617,532 +115,38 @@
       </div>
 
       <div class="actionsColumn">
-        <!-- Upload indicator (top) -->
+
         <div class="uploadInfo">
           <img id="imagePreview" alt="preview" />
           <span id="uploadStatus" class="uploadStatus"></span>
         </div>
 
-        <!-- Upload row -->
         <div class="uploadRow">
           <input type="file" id="mealImage" accept="image/*" />
           <button id="uploadBtn" type="button" aria-label="Upload">⬆ Add a photo</button>
           <button id="sendImage" class="circleBtn" type="button" aria-label="Send">➤</button>
         </div>
 
-        <!-- Image info input (shown when image is selected) -->
         <div id="imageInfoContainer">
           <input type="text" id="imageInfo" placeholder="Add info about this meal (optional)" />
         </div>
 
-        <!-- Manual calorie input (bottom) -->
         <div class="manualAdd">
           <input type="number" id="manualCalories" placeholder="Add calories manually" />
           <button id="addCaloriesBtn" class="circleBtn" type="button">+</button>
         </div>
+
       </div>
     </div>
   </div>
+
   <button id="forgetGoalBtn" type="button" aria-label="Change information" title="Change information">⟲</button>
-  <div id="loadingOverlay"><div class="spinner" aria-label="Loading"></div></div>
 
-<script>
-let goal = 0;
-let current = 0;
-let lang = "en";
-let proteinGoalTarget = 0;
-let carbGoalTarget = 0;
-let fatGoalTarget = 0;
-let proteinCurrent = 0;
-let carbCurrent = 0;
-let fatCurrent = 0;
-let currentTheme = 'default';
+  <div id="loadingOverlay">
+    <div class="spinner" aria-label="Loading"></div>
+  </div>
 
-const texts = {
-  en: {
-    age: "Age",
-    weight: "Weight (kg)",
-    height: "Height (cm)",
-    gender: "Select Gender",
-    male: "Male",
-    female: "Female",
-    activity: "Activity Level",
-    sedentary: "Sedentary (little or no exercise)",
-    light: "Lightly Active (1–3 days/week)",
-    moderate: "Moderately Active (3–5 days/week)",
-    active: "Active (6–7 days/week)",
-    very_active: "Very Active (hard daily exercise)",
-    submit: "Get Calorie Goal",
-    send: "➤",
-    goalText: "Your daily goal:",
-    switchIcon: "ع",
-    manualAdd: "Add calories manually",
-    addPhoto: "Add a photo",
-    uploadNone: "No photo selected",
-    uploadSelected: "Image selected",
-    uploadSuccess: "Uploaded!",
-    imageInfoPlaceholder: "Add info about this meal (optional)",
-    proteinLabel: "Protein",
-    carbsLabel: "Carbs",
-    fatsLabel: "Fats",
-    goalLabel: "Goal",
-    goalMaintain: "Maintain weight",
-    goalLose: "Lose weight",
-    goalGain: "Gain weight",
-    goalMuscle: "Muscle gain",
-    goalCut: "Fat loss (cut)",
-    forgetGoalTitle: "Change information",
-    panelTitle: "Body Details"
-  },
-  ar: {
-    age: "العمر",
-    weight: "الوزن (كجم)",
-    height: "الطول (سم)",
-    gender: "اختر الجنس",
-    male: "ذكر",
-    female: "أنثى",
-    activity: "مستوى النشاط",
-    sedentary: "خامل (قليل أو بدون تمرين)",
-    light: "نشاط خفيف (1–3 أيام/أسبوع)",
-    moderate: "نشاط معتدل (3–5 أيام/أسبوع)",
-    active: "نشاط مرتفع (6–7 أيام/أسبوع)",
-    very_active: "نشاط عالي جداً (تمارين قوية يومياً)",
-    submit: "احسب الهدف اليومي",
-    send: "➤",
-    goalText: "هدفك اليومي:",
-    switchIcon: "e",
-    manualAdd: "أضف السعرات يدويًا",
-    addPhoto: "أضف صورة",
-    uploadNone: "لم يتم اختيار صورة",
-    uploadSelected: "تم اختيار الصورة",
-    uploadSuccess: "تم الرفع!",
-    imageInfoPlaceholder: "أضف معلومات عن هذه الوجبة (اختياري)",
-    proteinLabel: "البروتين",
-    carbsLabel: "الكربوهيدرات",
-    fatsLabel: "الدهون",
-    goalLabel: "الهدف",
-    goalMaintain: "الحفاظ على الوزن",
-    goalLose: "خسارة الوزن",
-    goalGain: "زيادة الوزن",
-    goalMuscle: "زيادة العضلات",
-    goalCut: "خفض الدهون (تنشيف)",
-    forgetGoalTitle: "تعديل المعلومات",
-    panelTitle: "تفاصيل الجسم"
-  }
-};
-
-function updateLang() {
-  const t = texts[lang];
-  document.querySelector("html").lang = lang;
-  document.querySelector(".container").dir = lang === "ar" ? "rtl" : "ltr";
-
-  document.getElementById("age").placeholder = t.age;
-  document.getElementById("weight").placeholder = t.weight;
-  document.getElementById("height").placeholder = t.height;
-  document.getElementById("manualCalories").placeholder = t.manualAdd;
-
-  const gender = document.getElementById("gender");
-  gender.options[0].text = t.gender;
-  gender.options[1].text = t.male;
-  gender.options[2].text = t.female;
-
-  const activity = document.getElementById("activity");
-  activity.options[0].text = t.activity;
-  activity.options[1].text = t.sedentary;
-  activity.options[2].text = t.light;
-  activity.options[3].text = t.moderate;
-  activity.options[4].text = t.active;
-  activity.options[5].text = t.very_active;
-
-  const goalSel = document.getElementById('goal');
-  if (goalSel && goalSel.options.length >= 6) {
-    goalSel.options[0].text = t.goalLabel;
-    goalSel.options[1].text = t.goalMaintain;
-    goalSel.options[2].text = t.goalLose;
-    goalSel.options[3].text = t.goalGain;
-    goalSel.options[4].text = t.goalMuscle;
-    goalSel.options[5].text = t.goalCut;
-  }
-
-  document.querySelector('button[type="submit"]').textContent = t.submit;
-  document.getElementById('sendImage').textContent = t.send;
-  document.getElementById('langBtn').textContent = t.switchIcon;
-  const addPhotoLabel = document.getElementById('addPhotoLabel');
-  if (addPhotoLabel) addPhotoLabel.textContent = t.addPhoto;
-  const uploadBtnEl = document.getElementById('uploadBtn');
-  if (uploadBtnEl) uploadBtnEl.textContent = `⬆ ${t.addPhoto}`;
-  const uploadStatus = document.getElementById('uploadStatus');
-  if (uploadStatus) { uploadStatus.textContent = t.uploadNone; uploadStatus.className = 'uploadStatus'; }
-  const imageInfo = document.getElementById('imageInfo');
-  if (imageInfo) imageInfo.placeholder = t.imageInfoPlaceholder;
-  const forgetBtn = document.getElementById('forgetGoalBtn');
-  if (forgetBtn) forgetBtn.title = t.forgetGoalTitle;
-  const panelTitle = document.getElementById('panelTitle');
-  if (panelTitle) panelTitle.textContent = t.panelTitle;
-
-  if (goal > 0) {
-    document.getElementById('goalDisplay').textContent = `${t.goalText} ${goal} kcal`;
-  }
-
-  // Update macro labels if visible
-  const proteinEl = document.getElementById('proteinText');
-  const carbsEl = document.getElementById('carbsText');
-  const fatEl = document.getElementById('fatText');
-  if (proteinEl && carbsEl && fatEl) {
-    proteinEl.textContent = `${t.proteinLabel}: ${proteinCurrent}g / ${proteinGoalTarget}g`;
-    carbsEl.textContent = `${t.carbsLabel}: ${carbCurrent}g / ${carbGoalTarget}g`;
-    fatEl.textContent = `${t.fatsLabel}: ${fatCurrent}g / ${fatGoalTarget}g`;
-  }
-}
-
-function showLoading(show) {
-  const overlay = document.getElementById('loadingOverlay');
-  if (!overlay) return;
-  if (show) overlay.classList.add('active');
-  else overlay.classList.remove('active');
-}
-
-document.getElementById("langBtn").addEventListener("click", () => {
-  lang = lang === "en" ? "ar" : "en";
-  updateLang();
-  try { localStorage.setItem('cs_lang', lang); } catch {}
-});
-
-// Initialize language from storage
-try {
-  const savedLang = localStorage.getItem('cs_lang');
-  if (savedLang === 'en' || savedLang === 'ar') lang = savedLang;
-} catch {}
-updateLang();
-
-// Theme setup
-function applyTheme(theme) {
-  currentTheme = theme || 'default';
-  try { localStorage.setItem('cs_theme', currentTheme); } catch {}
-  document.body.setAttribute('data-theme', currentTheme);
-  const circles = document.querySelectorAll('.theme-circle');
-  circles.forEach(c => {
-    if (c.getAttribute('data-theme') === currentTheme) c.classList.add('active');
-    else c.classList.remove('active');
-  });
-}
-try {
-  const savedTheme = localStorage.getItem('cs_theme');
-  if (savedTheme) currentTheme = savedTheme;
-} catch {}
-applyTheme(currentTheme);
-document.querySelectorAll('.theme-circle').forEach(el => {
-  el.addEventListener('click', () => applyTheme(el.getAttribute('data-theme')));
-});
-
-// Theme selector toggle (collapsed by default)
-const themeToggle = document.getElementById('themeToggle');
-const themeSelector = document.getElementById('themeSelector');
-if (themeToggle && themeSelector) {
-  themeToggle.addEventListener('click', () => {
-    const isCollapsed = themeSelector.classList.toggle('collapsed');
-    themeToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-  });
-}
-
-function saveState() {
-  try {
-    localStorage.setItem('cs_goal', String(goal));
-    localStorage.setItem('cs_current', String(current));
-    localStorage.setItem('cs_p_curr', String(proteinCurrent));
-    localStorage.setItem('cs_c_curr', String(carbCurrent));
-    localStorage.setItem('cs_f_curr', String(fatCurrent));
-    localStorage.setItem('cs_p_goal', String(proteinGoalTarget));
-    localStorage.setItem('cs_c_goal', String(carbGoalTarget));
-    localStorage.setItem('cs_f_goal', String(fatGoalTarget));
-  } catch {}
-}
-
-function loadState() {
-  try {
-    const g = Number(localStorage.getItem('cs_goal') || '0');
-    const c = Number(localStorage.getItem('cs_current') || '0');
-    proteinCurrent = Number(localStorage.getItem('cs_p_curr') || '0');
-    carbCurrent = Number(localStorage.getItem('cs_c_curr') || '0');
-    fatCurrent = Number(localStorage.getItem('cs_f_curr') || '0');
-    proteinGoalTarget = Number(localStorage.getItem('cs_p_goal') || '0');
-    carbGoalTarget = Number(localStorage.getItem('cs_c_goal') || '0');
-    fatGoalTarget = Number(localStorage.getItem('cs_f_goal') || '0');
-    if (g > 0) {
-      goal = g;
-      current = Math.min(c, g);
-      document.getElementById('goalDisplay').textContent = `${texts[lang].goalText} ${goal} kcal`;
-      const pc = document.getElementById('progressContainer');
-      pc.style.display = 'block';
-      updateCalorieCircle();
-      updateMacroBars();
-    }
-  } catch {}
-}
-loadState();
-
-function updateCalorieCircle() {
-  const circle = document.getElementById('calorieProgress');
-  const label = document.getElementById('progressText');
-  const r = 70; // must match SVG r
-  const circumference = 2 * Math.PI * r;
-  const safeGoal = Math.max(goal, 1);
-  const pct = Math.max(0, Math.min(1, current / safeGoal));
-  const offset = circumference * (1 - pct);
-  if (circle) {
-    circle.setAttribute('stroke-dasharray', String(circumference));
-    circle.setAttribute('stroke-dashoffset', String(offset));
-  }
-  if (label) label.textContent = `${current} / ${goal} kcal`;
-}
-
-function updateMacroBars() {
-  const t = texts[lang];
-  const pPct = proteinGoalTarget > 0 ? Math.min(100, Math.round((proteinCurrent / proteinGoalTarget) * 100)) : 0;
-  const cPct = carbGoalTarget > 0 ? Math.min(100, Math.round((carbCurrent / carbGoalTarget) * 100)) : 0;
-  const fPct = fatGoalTarget > 0 ? Math.min(100, Math.round((fatCurrent / fatGoalTarget) * 100)) : 0;
-  const pBar = document.getElementById('proteinBar');
-  const cBar = document.getElementById('carbsBar');
-  const fBar = document.getElementById('fatBar');
-  if (pBar) pBar.style.width = pPct + '%';
-  if (cBar) cBar.style.width = cPct + '%';
-  if (fBar) fBar.style.width = fPct + '%';
-  const proteinEl = document.getElementById('proteinText');
-  const carbsEl = document.getElementById('carbsText');
-  const fatEl = document.getElementById('fatText');
-  if (proteinEl) proteinEl.textContent = `${t.proteinLabel}: ${proteinCurrent}g / ${proteinGoalTarget}g`;
-  if (carbsEl) carbsEl.textContent = `${t.carbsLabel}: ${carbCurrent}g / ${carbGoalTarget}g`;
-  if (fatEl) fatEl.textContent = `${t.fatsLabel}: ${fatCurrent}g / ${fatGoalTarget}g`;
-}
-
-/* --- Calorie goal logic --- */
-document.getElementById('userForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showLoading(true);
-
-  const data = {
-    age: document.getElementById('age').value,
-    weight: document.getElementById('weight').value,
-    height: document.getElementById('height').value,
-    gender: document.getElementById('gender').value,
-    activity: document.getElementById('activity').value,
-    goalType: document.getElementById('goal').value
-  };
-
-  try {
-    const res = await fetch('https://zivodev.app.n8n.cloud/webhook/bcddd092-eaa8-4a52-9e24-a1a7e5b26dd6', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const text = await res.text();
-    let result;
-    try { result = JSON.parse(text); } catch { result = {}; }
-
-    goal = Number(result.dailyGoal) || 0;
-    current = 0;
-    document.getElementById('goalDisplay').textContent = `${texts[lang].goalText} ${goal} kcal`;
-    document.getElementById('progressContainer').style.display = 'block';
-    updateCalorieCircle();
-    saveState();
-
-    // update macro targets if provided by n8n
-    proteinGoalTarget = Number(result.proteinGoal) || 0;
-    carbGoalTarget = Number(result.carbGoal) || 0;
-    fatGoalTarget = Number(result.fatGoal) || 0;
-    proteinCurrent = 0;
-    carbCurrent = 0;
-    fatCurrent = 0;
-    updateMacroBars();
-
-    // Minimize the panel after generating goal
-    const body = document.getElementById('panelBody');
-    const header = document.getElementById('panelToggle');
-    if (body && header) {
-      body.classList.add('minimized');
-      header.setAttribute('aria-expanded', 'false');
-    }
-
-  } catch (err) {
-    console.error("Fetch error:", err);
-    alert('Error fetching goal.');
-  } finally {
-    showLoading(false);
-  }
-});
-
-/* --- Add calories manually --- */
-document.getElementById('addCaloriesBtn').addEventListener('click', () => {
-  const input = document.getElementById('manualCalories');
-  const amount = Number(input.value);
-  if (!amount || amount <= 0) return alert(lang === "en" ? "Enter valid calories" : "أدخل عدد سعرات صالح");
-
-  current += amount;
-  if (current > goal) current = goal;
-  updateCalorieCircle();
-  input.value = "";
-  saveState();
-});
-
-/* --- Upload image --- */
-document.getElementById('sendImage').addEventListener('click', async () => {
-  const file = document.getElementById('mealImage').files[0];
-  if (!file) return alert(lang === 'en' ? 'Upload an image first' : 'قم برفع صورة أولاً');
-
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('goal', goal);
-  formData.append('current', current);
-  const imageInfo = document.getElementById('imageInfo').value.trim();
-  if (imageInfo) {
-    formData.append('info', imageInfo);
-  }
-
-  showLoading(true);
-  try {
-    const res = await fetch('https://zivodev.app.n8n.cloud/webhook/eff0e03c-8382-4f7f-a60b-05dfee430173', {
-      method: 'POST',
-      body: formData
-    });
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      throw new Error(`HTTP ${res.status} ${res.statusText} ${errText ? '- ' + errText : ''}`);
-    }
-    const text = await res.text();
-    let result;
-    try { result = JSON.parse(text); } catch { result = {}; }
-    // Try multiple common keys for calories from webhook
-    const possibleKeys = ['mealCalories', 'calories', 'kcal', 'addedCalories', 'deltaCalories'];
-    let added = 0;
-    for (const k of possibleKeys) {
-      if (result && result[k] != null && result[k] !== '') {
-        const n = Number(result[k]);
-        if (!Number.isNaN(n) && Number.isFinite(n)) { added = n; break; }
-      }
-    }
-    current += added;
-    if (current > goal) current = goal;
-    updateCalorieCircle();
-    if (added > 0) {
-      const msg = lang === 'en' ? `+${added} kcal added` : `+${added} سعر حراري`;
-      try { console.info(msg); } catch {}
-    }
-
-    // Parse macros if available in webhook response
-    const pKeys = ['protein', 'protein_g', 'proteinGrams', 'proteinAdded'];
-    const cKeys = ['carbs', 'carbohydrates', 'carbs_g', 'carbGrams', 'carbsAdded'];
-    const fKeys = ['fat', 'fats', 'fat_g', 'fatGrams', 'fatAdded'];
-    for (const k of pKeys) { if (result && result[k] != null && result[k] !== '') { const n = Number(result[k]); if (Number.isFinite(n)) { proteinCurrent += n; break; } } }
-    for (const k of cKeys) { if (result && result[k] != null && result[k] !== '') { const n = Number(result[k]); if (Number.isFinite(n)) { carbCurrent += n; break; } } }
-    for (const k of fKeys) { if (result && result[k] != null && result[k] !== '') { const n = Number(result[k]); if (Number.isFinite(n)) { fatCurrent += n; break; } } }
-    // Clamp to goals if goals exist
-    if (proteinGoalTarget > 0) proteinCurrent = Math.min(proteinCurrent, proteinGoalTarget);
-    if (carbGoalTarget > 0) carbCurrent = Math.min(carbCurrent, carbGoalTarget);
-    if (fatGoalTarget > 0) fatCurrent = Math.min(fatCurrent, fatGoalTarget);
-    updateMacroBars();
-
-    const status = document.getElementById('uploadStatus');
-    if (status) { status.textContent = texts[lang].uploadSuccess; status.className = 'uploadStatus success'; }
-    // Clear image and info after successful upload
-    const mealImageInput = document.getElementById('mealImage');
-    const infoInput = document.getElementById('imageInfo');
-    const infoContainer = document.getElementById('imageInfoContainer');
-    const preview = document.getElementById('imagePreview');
-    if (mealImageInput) mealImageInput.value = '';
-    if (infoInput) infoInput.value = '';
-    if (infoContainer) infoContainer.style.display = 'none';
-    if (preview) { preview.src = ''; preview.style.display = 'none'; }
-    saveState();
-  } catch (err) {
-    console.error('Upload error:', err);
-    alert((lang === 'en' ? 'Error uploading image: ' : 'خطأ في رفع الصورة: ') + (err && err.message ? err.message : ''));
-  } finally {
-    showLoading(false);
-  }
-});
-
-/* --- Upload button triggers file input --- */
-const uploadBtn = document.getElementById('uploadBtn');
-if (uploadBtn) {
-  uploadBtn.addEventListener('click', () => {
-    const fileInput = document.getElementById('mealImage');
-    if (fileInput) fileInput.click();
-  });
-}
-
-/* --- Show selected image + status --- */
-const mealInput = document.getElementById('mealImage');
-if (mealInput) {
-  mealInput.addEventListener('change', () => {
-    const file = mealInput.files && mealInput.files[0];
-    const status = document.getElementById('uploadStatus');
-    const preview = document.getElementById('imagePreview');
-    const infoContainer = document.getElementById('imageInfoContainer');
-    const infoInput = document.getElementById('imageInfo');
-    if (!file) {
-      if (status) { status.textContent = texts[lang].uploadNone; status.className = 'uploadStatus'; }
-      if (preview) { preview.src = ''; preview.style.display = 'none'; }
-      if (infoContainer) infoContainer.style.display = 'none';
-      if (infoInput) infoInput.value = '';
-      return;
-    }
-    if (status) { status.textContent = texts[lang].uploadSelected; status.className = 'uploadStatus success'; }
-    if (preview) {
-      preview.src = URL.createObjectURL(file);
-      preview.style.display = 'inline-block';
-    }
-    if (infoContainer) infoContainer.style.display = 'block';
-  });
-}
-
-
-
-/* --- Change information: clear saved goal and calories --- */
-const forgetBtn = document.getElementById('forgetGoalBtn');
-if (forgetBtn) {
-  forgetBtn.addEventListener('click', () => {
-    try {
-      localStorage.removeItem('cs_goal');
-      localStorage.removeItem('cs_current');
-      localStorage.removeItem('cs_p_curr');
-      localStorage.removeItem('cs_c_curr');
-      localStorage.removeItem('cs_f_curr');
-      localStorage.removeItem('cs_p_goal');
-      localStorage.removeItem('cs_c_goal');
-      localStorage.removeItem('cs_f_goal');
-    } catch {}
-    goal = 0;
-    current = 0;
-    proteinCurrent = 0; carbCurrent = 0; fatCurrent = 0;
-    proteinGoalTarget = 0; carbGoalTarget = 0; fatGoalTarget = 0;
-    const pc = document.getElementById('progressContainer');
-    pc.style.display = 'none';
-    document.getElementById('goalDisplay').textContent = '';
-    updateCalorieCircle();
-    updateMacroBars();
-    const body = document.getElementById('panelBody');
-    const header = document.getElementById('panelToggle');
-    if (body && header) {
-      body.classList.remove('minimized');
-      header.setAttribute('aria-expanded', 'true');
-    }
-  });
-}
-
-// Panel toggle handler
-const panelToggle = document.getElementById('panelToggle');
-if (panelToggle) {
-  panelToggle.addEventListener('click', () => {
-    const body = document.getElementById('panelBody');
-    const expanded = panelToggle.getAttribute('aria-expanded') === 'true';
-    if (body) {
-      if (expanded) body.classList.add('minimized');
-      else body.classList.remove('minimized');
-    }
-    panelToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-  });
-}
-</script>
+  <!-- External JS -->
+  <script src="script.js"></script>
 </body>
 </html>
