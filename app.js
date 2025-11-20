@@ -23,10 +23,151 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeCircles = document.querySelectorAll(".theme-circle");
   const panel = document.getElementById("userPanel");
   const panelToggle = document.getElementById("panelToggle");
-  const langBtn = document.getElementById("langBtn");
+  const langToggle = document.getElementById("langToggle");
+  const langToggleLabel = document.getElementById("langToggleLabel");
   const container = document.querySelector(".container");
   const loadingOverlay = document.getElementById("loadingOverlay");
   const loadingBar = document.getElementById("loadingBar");
+
+  const translations = {
+    en: {
+      panel: { title: "Body Details" },
+      form: {
+        age: "Age",
+        weight: "Weight (kg)",
+        height: "Height (cm)",
+        genderPlaceholder: "Select Gender",
+        male: "Male",
+        female: "Female",
+        activityPlaceholder: "Activity Level",
+        activity: {
+          sedentary: "Sedentary (little or no exercise)",
+          light: "Lightly Active (1–3 days/week)",
+          moderate: "Moderately Active (3–5 days/week)",
+          active: "Active (6–7 days/week)",
+          very_active: "Very Active (hard daily exercise)"
+        },
+        goalPlaceholder: "Goal",
+        goal: {
+          maintain: "Maintain weight",
+          lose: "Lose weight",
+          gain: "Gain weight",
+          muscle: "Muscle gain",
+          cut: "Fat loss (cut)"
+        },
+        submit: "Get Calorie Goal"
+      },
+      goal: {
+        placeholder: "Fill in your details to generate a tailored calorie plan.",
+        incomplete: "Please complete every field to continue.",
+        result: ({ calories }) =>
+          `Your daily target is ${calories} kcal. Stay consistent and listen to your body.`
+      },
+      progress: {
+        label: "Calorie goal",
+        empty: "Waiting for goal…"
+      },
+      media: {
+        title: "Meal capture",
+        lead: "Log a photo when you add calories",
+        addPhoto: "⬆ Add a photo",
+        caption: "Add info about this meal (optional)",
+        manual: "Add calories manually",
+        status: {
+          idle: "Waiting for a photo",
+          ready: ({ name }) => `Ready: ${name}`,
+          analyzing: "Analyzing meal…",
+          success: "Meal logged successfully!",
+          missing: "Select a photo first."
+        }
+      },
+      settings: {
+        title: "Personalize",
+        language: "Language",
+        languageCurrent: "English",
+        languageAria: "Toggle app language",
+        theme: "Themes",
+        note: "Changes are saved locally so you can pick up where you left off."
+      },
+      macro: {
+        protein: "Protein",
+        carbs: "Carbs",
+        fat: "Fats"
+      },
+      units: {
+        grams: "g",
+        kcal: "kcal"
+      }
+    },
+    ar: {
+      panel: { title: "بيانات الجسم" },
+      form: {
+        age: "العمر",
+        weight: "الوزن (كجم)",
+        height: "الطول (سم)",
+        genderPlaceholder: "اختر الجنس",
+        male: "ذكر",
+        female: "أنثى",
+        activityPlaceholder: "مستوى النشاط",
+        activity: {
+          sedentary: "خامل (بدون تمارين تقريباً)",
+          light: "نشاط خفيف (1-3 أيام/أسبوع)",
+          moderate: "نشاط متوسط (3-5 أيام/أسبوع)",
+          active: "نشاط عالٍ (6-7 أيام/أسبوع)",
+          very_active: "نشاط مكثف (تمارين يومية شاقة)"
+        },
+        goalPlaceholder: "الهدف",
+        goal: {
+          maintain: "حافظ على الوزن",
+          lose: "اخسر الوزن",
+          gain: "اكسب الوزن",
+          muscle: "زيادة العضلات",
+          cut: "خسارة الدهون"
+        },
+        submit: "احسب السعرات"
+      },
+      goal: {
+        placeholder: "أدخل بياناتك لتحصل على خطة سعرات مخصصة.",
+        incomplete: "رجاءً أكمل جميع الحقول للمتابعة.",
+        result: ({ calories }) => `هدفك اليومي هو ${calories} سعرة. التزم واستمع لجسمك.`
+      },
+      progress: {
+        label: "هدف السعرات",
+        empty: "بانتظار الهدف…"
+      },
+      media: {
+        title: "توثيق الوجبة",
+        lead: "أضف صورة عند تسجيل السعرات",
+        addPhoto: "⬆ أضف صورة",
+        caption: "أضف وصفاً عن الوجبة (اختياري)",
+        manual: "إضافة سعرات يدوياً",
+        status: {
+          idle: "بانتظار صورة",
+          ready: ({ name }) => `جاهز: ${name}`,
+          analyzing: "يتم تحليل الوجبة…",
+          success: "تم تسجيل الوجبة!",
+          missing: "اختر صورة أولاً."
+        }
+      },
+      settings: {
+        title: "التخصيص",
+        language: "اللغة",
+        languageCurrent: "العربية",
+        languageAria: "تبديل لغة التطبيق",
+        theme: "السِمات",
+        note: "نحفظ تغييراتك محلياً لتكمل لاحقاً."
+      },
+      macro: {
+        protein: "البروتين",
+        carbs: "الكربوهيدرات",
+        fat: "الدهون"
+      },
+      units: {
+        grams: "غ",
+        kcal: "سعرة"
+      }
+    }
+  };
 
   const activityMap = {
     sedentary: 1.2,
@@ -54,11 +195,26 @@ document.addEventListener("DOMContentLoaded", () => {
   let calorieGoal = 0;
   let currentCalories = 0;
   let macroTargets = { protein: 0, carbs: 0, fat: 0 };
-  let isArabic = false;
+  let currentLang = "en";
+  let goalState = "placeholder";
+  let goalMessageArgs = {};
+  let uploadState = "idle";
+  let uploadFileName = "";
 
-  const formatNumber = (value) => Number(value).toLocaleString();
+  const formatNumber = (value) =>
+    Number(value ?? 0).toLocaleString(currentLang === "ar" ? "ar-EG" : "en-US");
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+  const translate = (key, params = {}) => {
+    const parts = key.split(".");
+    let result = translations[currentLang];
+    for (const part of parts) {
+      result = result?.[part];
+    }
+    if (result === undefined) return "";
+    return typeof result === "function" ? result(params) : result;
+  };
 
   const updateLoadingBar = (progress) => {
     loadingBar.style.width = `${progress}%`;
@@ -73,43 +229,88 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const setTheme = (theme) => {
-    document.body.dataset.theme = theme === "default" ? "" : theme;
+    if (theme === "default") {
+      delete document.body.dataset.theme;
+    } else {
+      document.body.dataset.theme = theme;
+    }
     themeCircles.forEach((circle) =>
       circle.classList.toggle("active", circle.dataset.theme === theme)
     );
   };
 
+  const renderGoalMessage = () => {
+    if (goalState === "result") {
+      goalDisplay.textContent = translate("goal.result", {
+        calories: formatNumber(goalMessageArgs.calories)
+      });
+    } else if (goalState === "incomplete") {
+      goalDisplay.textContent = translate("goal.incomplete");
+    } else {
+      goalDisplay.textContent = translate("goal.placeholder");
+    }
+  };
+
+  const renderUploadStatus = () => {
+    uploadStatus.textContent = translate(`media.status.${uploadState}`, {
+      name: uploadFileName
+    });
+  };
+
   const updateCircleProgress = () => {
-    if (!calorieGoal) return;
+    if (!calorieGoal) {
+      progressCircle.style.strokeDashoffset = circleCircumference;
+      progressCircle.style.stroke = "var(--accent)";
+      progressText.textContent = translate("progress.empty");
+      return;
+    }
     const progress = clamp((currentCalories / calorieGoal) * 100, 0, 130);
     const dashOffset = circleCircumference - (progress / 100) * circleCircumference;
     progressCircle.style.strokeDashoffset = dashOffset;
     progressCircle.style.stroke = progress >= 100 ? "var(--success)" : "var(--accent)";
     progressText.textContent = `${formatNumber(currentCalories)} / ${formatNumber(
       calorieGoal
-    )} kcal`;
+    )} ${translate("units.kcal")}`;
   };
 
   const updateMacroUI = () => {
-    const consumedProtein = Math.round((currentCalories * macroRatios.protein) / 4);
-    const consumedCarbs = Math.round((currentCalories * macroRatios.carbs) / 4);
-    const consumedFat = Math.round((currentCalories * macroRatios.fat) / 9);
+    const consumedProtein = calorieGoal
+      ? Math.round((currentCalories * macroRatios.protein) / 4)
+      : 0;
+    const consumedCarbs = calorieGoal
+      ? Math.round((currentCalories * macroRatios.carbs) / 4)
+      : 0;
+    const consumedFat = calorieGoal
+      ? Math.round((currentCalories * macroRatios.fat) / 9)
+      : 0;
 
-    proteinText.textContent = `Protein: ${consumedProtein}g / ${macroTargets.protein}g`;
-    carbsText.textContent = `Carbs: ${consumedCarbs}g / ${macroTargets.carbs}g`;
-    fatText.textContent = `Fats: ${consumedFat}g / ${macroTargets.fat}g`;
+    const gramUnit = translate("units.grams");
+
+    proteinText.textContent = `${translate("macro.protein")}: ${formatNumber(
+      consumedProtein
+    )}${gramUnit} / ${formatNumber(macroTargets.protein)}${gramUnit}`;
+    carbsText.textContent = `${translate("macro.carbs")}: ${formatNumber(
+      consumedCarbs
+    )}${gramUnit} / ${formatNumber(macroTargets.carbs)}${gramUnit}`;
+    fatText.textContent = `${translate("macro.fat")}: ${formatNumber(
+      consumedFat
+    )}${gramUnit} / ${formatNumber(macroTargets.fat)}${gramUnit}`;
 
     proteinBar.style.width = `${clamp(
-      (consumedProtein / macroTargets.protein) * 100 || 0,
+      (consumedProtein / (macroTargets.protein || 1)) * 100 || 0,
       0,
       120
     )}%`;
     carbsBar.style.width = `${clamp(
-      (consumedCarbs / macroTargets.carbs) * 100 || 0,
+      (consumedCarbs / (macroTargets.carbs || 1)) * 100 || 0,
       0,
       120
     )}%`;
-    fatBar.style.width = `${clamp((consumedFat / macroTargets.fat) * 100 || 0, 0, 120)}%`;
+    fatBar.style.width = `${clamp(
+      (consumedFat / (macroTargets.fat || 1)) * 100 || 0,
+      0,
+      120
+    )}%`;
   };
 
   const resetProgress = () => {
@@ -134,7 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(form);
     const entries = Object.fromEntries(formData);
     if (Object.values(entries).some((value) => !value)) {
-      goalDisplay.textContent = "Please complete every field to continue.";
+      goalState = "incomplete";
+      renderGoalMessage();
       return;
     }
 
@@ -148,12 +350,11 @@ document.addEventListener("DOMContentLoaded", () => {
           fat: Math.round((calorieGoal * macroRatios.fat) / 9)
         };
 
-        goalDisplay.textContent = `Your daily target is ${formatNumber(
-          calorieGoal
-        )} kcal. Stay consistent and listen to your body.`;
-
-        progressContainer.style.display = "grid";
+        goalState = "result";
+        goalMessageArgs = { calories: calorieGoal };
+        progressContainer.style.display = "flex";
         resetProgress();
+        renderGoalMessage();
         toggleLoading(false);
       }, 650);
     });
@@ -170,25 +371,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const resetAll = () => {
     form.reset();
-    goalDisplay.textContent = "Fill in your details to generate a tailored calorie plan.";
+    goalState = "placeholder";
+    goalMessageArgs = {};
     progressContainer.style.display = "none";
     calorieGoal = 0;
     currentCalories = 0;
-    themeCircles.forEach((circle) => circle.classList.remove("active"));
+    macroTargets = { protein: 0, carbs: 0, fat: 0 };
     setTheme("default");
+    imagePreview.src = "";
+    imageInput.value = "";
+    uploadFileName = "";
+    uploadState = "idle";
+    renderGoalMessage();
+    renderUploadStatus();
+    updateCircleProgress();
+    updateMacroUI();
   };
 
   const togglePanel = () => {
     panel.classList.toggle("collapsed");
     const expanded = panel.classList.contains("collapsed");
     panelToggle.setAttribute("aria-expanded", String(!expanded));
-  };
-
-  const toggleLang = () => {
-    isArabic = !isArabic;
-    document.documentElement.lang = isArabic ? "ar" : "en";
-    container.dir = isArabic ? "rtl" : "ltr";
-    langBtn.textContent = isArabic ? "En" : "ع";
   };
 
   const handleThemeCircleClick = (event) => {
@@ -206,46 +409,88 @@ document.addEventListener("DOMContentLoaded", () => {
     const file = imageInput.files?.[0];
     if (!file) {
       imagePreview.src = "";
-      uploadStatus.textContent = "";
+      uploadFileName = "";
+      uploadState = "idle";
+      renderUploadStatus();
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
       imagePreview.src = e.target?.result || "";
-      uploadStatus.textContent = `Ready: ${file.name}`;
+      uploadFileName = file.name;
+      uploadState = "ready";
+      renderUploadStatus();
     };
     reader.readAsDataURL(file);
   };
 
   const fakeUpload = () => {
     if (!imageInput.files?.length) {
-      uploadStatus.textContent = "Select a photo first.";
+      uploadState = "missing";
+      renderUploadStatus();
       return;
     }
     toggleLoading(true);
-    uploadStatus.textContent = "Analyzing meal…";
+    uploadState = "analyzing";
+    renderUploadStatus();
     setTimeout(() => {
       toggleLoading(false);
-      uploadStatus.textContent = "Meal logged successfully!";
+      uploadState = "success";
+      renderUploadStatus();
     }, 1200);
+  };
+
+  const applyTranslations = () => {
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      if (el.id === "goalDisplay" || el.id === "uploadStatus") return;
+      const text = translate(el.dataset.i18n);
+      if (text) el.textContent = text;
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const placeholder = translate(el.dataset.i18nPlaceholder);
+      if (placeholder) el.placeholder = placeholder;
+    });
+
+    langToggleLabel.textContent = translate("settings.languageCurrent");
+    const langSwitch = langToggle.closest(".switch");
+    if (langSwitch) {
+      langSwitch.setAttribute("aria-label", translate("settings.languageAria"));
+    }
+
+    renderGoalMessage();
+    renderUploadStatus();
+    updateCircleProgress();
+    updateMacroUI();
+  };
+
+  const setLanguage = (lang) => {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.body.dir = lang === "ar" ? "rtl" : "ltr";
+    container.dir = lang === "ar" ? "rtl" : "ltr";
+    langToggle.checked = lang === "ar";
+    applyTranslations();
   };
 
   form.addEventListener("submit", handleFormSubmit);
   addCaloriesBtn.addEventListener("click", handleManualAdd);
   forgetGoalBtn.addEventListener("click", resetAll);
   panelToggle.addEventListener("click", togglePanel);
-  langBtn.addEventListener("click", toggleLang);
   themeToggle.addEventListener("click", handleThemeToggle);
   themeCircles.forEach((circle) =>
     circle.addEventListener("click", handleThemeCircleClick)
+  );
+  langToggle.addEventListener("change", (event) =>
+    setLanguage(event.target.checked ? "ar" : "en")
   );
   uploadBtn.addEventListener("click", () => imageInput.click());
   imageInput.addEventListener("change", handleUploadPreview);
   sendImageBtn.addEventListener("click", fakeUpload);
 
-  // Initial state
   setTheme("default");
-  updateCircleProgress();
-  updateMacroUI();
-  goalDisplay.textContent = "Fill in your details to generate a tailored calorie plan.";
+  setLanguage("en");
+  progressContainer.style.display = "none";
+  renderGoalMessage();
+  renderUploadStatus();
 });
