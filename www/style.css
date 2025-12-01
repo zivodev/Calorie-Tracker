@@ -14,8 +14,26 @@
   --blur: blur(12px);
 }
 
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 body {
   margin: 0;
+#imagePreview {
+...
+}
+
+body.locked,
+body.locked *:not(input):not(textarea):not(select):not(button):not([contenteditable]) {
+  user-select: none;
+}
+
+img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
   min-height: 100vh;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   background: var(--bg);
@@ -149,6 +167,10 @@ body::after {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
+.theme-selector {
+  flex-wrap: nowrap;
+}
+
 .theme-icon {
   display: inline-flex;
   align-items: center;
@@ -158,13 +180,40 @@ body::after {
   border-radius: 16px;
   background: rgba(196, 122, 63, 0.12);
   color: var(--accent-strong);
+  flex-shrink: 0;
 }
 
 .theme-list {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  flex-wrap: wrap;
   justify-content: center;
+}
+
+.theme-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.container[dir="rtl"] .theme-selector {
+  flex-direction: row-reverse;
+}
+
+.container[dir="rtl"] .theme-list {
+  align-items: flex-end;
+}
+
+.container[dir="rtl"] .theme-icon {
+  margin-left: 0;
+}
+
+.theme-row-dark {
+  flex-wrap: wrap;
+}
+
+.theme-row-light {
+  flex-wrap: wrap;
 }
 
 .theme-circle {
@@ -328,11 +377,11 @@ body::after {
   gap: clamp(12px, 3vw, 28px);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 28px 28px 0 0;
   padding: 18px clamp(28px, 6vw, 96px);
   box-shadow: 0 15px 45px rgba(15, 23, 42, 0.15);
   z-index: 5;
-  width: 100vw;
+  width: min(960px, calc(100vw - 32px));
   box-sizing: border-box;
 }
 
@@ -710,6 +759,11 @@ body::after {
   background: var(--surface);
   padding: 4px;
   width: min(360px, 100%);
+  margin-inline: auto;
+}
+
+.container[dir="rtl"] .langSegment {
+  justify-content: center;
 }
 
 .segOption {

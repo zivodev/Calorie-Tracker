@@ -34,6 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
     carbs: document.getElementById("carbsCircle"),
     fat: document.getElementById("fatCircle")
   };
+  const allowSelection = (target) =>
+    target.closest("input, textarea, select, button, [contenteditable='true']");
+
+  document.body.classList.add("locked");
+  ["contextmenu", "dragstart"].forEach((evt) =>
+    document.addEventListener(evt, (event) => event.preventDefault())
+  );
+  document.addEventListener("selectstart", (event) => {
+    if (!allowSelection(event.target)) {
+      event.preventDefault();
+    }
+  });
 
   const translations = {
     en: {
