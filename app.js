@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendImageBtn = $("sendImage") || null;
   const uploadStatus = $("uploadStatus") || null;
   const imagePreview = $("imagePreview") || null;
+  const camera = $("camera") || null;
+  const snapshot = $("snapshot") || null;
+  const captureBtn = $("captureBtn") || null;
+  let cameraStream = null;
   const themeSelector = $("themeSelector") || null;
   const themeCircles = document.querySelectorAll(".theme-circle");
   const panel = $("userPanel") || null;
@@ -115,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "Meal capture",
         lead: "Log a photo when you add calories",
         addPhoto: "⬆ Add a photo",
+        capture: "Capture",
         caption: "Add info about this meal (optional)",
         manual: "Add calories manually",
         status: {
@@ -122,7 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ready: ({ name }) => `Ready: ${name}`,
           analyzing: "Analyzing meal…",
           success: "Meal logged successfully!",
-          missing: "Select a photo first."
+          missing: "Select a photo first.",
+          cameraError: "Camera access failed"
         }
       },
       settings: {
@@ -189,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "توثيق الوجبة",
         lead: "أضف صورة عند تسجيل السعرات",
         addPhoto: "⬆ أضف صورة",
+        capture: "التقاط",
         caption: "أضف وصفاً عن الوجبة (اختياري)",
         manual: "إضافة سعرات يدوياً",
         status: {
@@ -196,7 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ready: ({ name }) => `جاهز: ${name}`,
           analyzing: "يتم تحليل الوجبة…",
           success: "تم تسجيل الوجبة!",
-          missing: "اختر صورة أولاً."
+          missing: "اختر صورة أولاً.",
+          cameraError: "فشل الوصول إلى الكاميرا"
         }
       },
       settings: {
@@ -460,6 +468,11 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadFileName = "";
     uploadState = "idle";
     if (mediaPanel) mediaPanel.classList.remove("has-photo");
+    stopCamera();
+    // Restart camera if on media page
+    if (pages && Array.from(pages).some((p) => p.classList.contains("active") && p.dataset.page === "media")) {
+      startCamera();
+    }
     renderUploadStatus();
     updateCircleProgress();
     updateMacroUI();
@@ -492,6 +505,65 @@ document.addEventListener("DOMContentLoaded", () => {
   const handleThemeCircleClick = (event) => {
     const selectedTheme = event.currentTarget.dataset.theme;
     setTheme(selectedTheme);
+  };
+
+  const startCamera = async () => {
+    if (!camera) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      camera.srcObject = stream;
+      cameraStream = stream;
+    } catch (err) {
+      console.error("[CalorieScope] Camera access failed:", err);
+      if (uploadStatus) {
+        uploadStatus.textContent = translate("media.status.cameraError") || "Camera access failed";
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream = null;
+    }
+    if (camera) {
+      camera.srcObject = null;
+    }
+  };
+
+  const handleCameraCapture = () => {
+    if (!camera || !snapshot || !imagePreview) return;
+
+    const ctx = snapshot.getContext("2d");
+    snapshot.width = camera.videoWidth;
+    snapshot.height = camera.videoHeight;
+    ctx.drawImage(camera, 0, 0);
+
+    const dataUrl = snapshot.toDataURL("image/jpeg", 0.9);
+    imagePreview.src = dataUrl;
+    imagePreview.classList.add("has-image");
+    uploadFileName = "captured-photo.jpg";
+    uploadState = "ready";
+    renderUploadStatus();
+
+    if (mediaPanel) mediaPanel.classList.add("has-photo");
+
+    // Stop camera after capture
+    stopCamera();
+
+    // Convert data URL to File for n8n upload
+    fetch(dataUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const file = new File([blob], "captured-photo.jpg", { type: "image/jpeg" });
+        // Store in a way that fakeUpload can access it
+        if (imageInput) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          imageInput.files = dataTransfer.files;
+        }
+      })
+      .catch((err) => console.error("[CalorieScope] Failed to convert capture:", err));
   };
 
   const handleUploadPreview = () => {
@@ -619,6 +691,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (captureFab) {
       captureFab.classList.toggle("active", target === "media");
     }
+    // Start/stop camera when switching to/from media page
+    if (target === "media") {
+      if (!mediaPanel?.classList.contains("has-photo")) {
+        startCamera();
+      }
+    } else {
+      stopCamera();
+    }
   };
 
   // ---------- bind events (only if elements exist) ----------
@@ -636,6 +716,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   if (uploadBtn && imageInput) uploadBtn.addEventListener("click", () => imageInput.click());
   if (imageInput) imageInput.addEventListener("change", handleUploadPreview);
+  if (captureBtn) captureBtn.addEventListener("click", handleCameraCapture);
   if (sendImageBtn) sendImageBtn.addEventListener("click", fakeUpload);
   tabButtons.forEach((btn) =>
     btn.addEventListener("click", () => setActivePage(btn.dataset.target))

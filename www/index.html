@@ -129,14 +129,19 @@
           <h2 data-i18n="media.title">Meal capture</h2>
           <p class="mediaLead" data-i18n="media.lead">Log a photo when you add calories</p>
 
+          <div class="cameraContainer">
+            <video id="camera" autoplay playsinline></video>
+            <canvas id="snapshot" style="display: none;"></canvas>
+            <button id="captureBtn" type="button" class="capturePhotoBtn" data-i18n="media.capture">Capture</button>
+          </div>
+
           <div class="uploadInfo">
             <img id="imagePreview" alt="preview" />
             <span id="uploadStatus" class="uploadStatus" data-i18n="media.status.idle">Waiting for a photo</span>
           </div>
 
-          <div class="uploadRow">
-            <input type="file" id="mealImage" accept="image/*" />
-            <button id="uploadBtn" type="button" aria-label="Upload" data-i18n="media.addPhoto">⬆ Add a photo</button>
+          <div class="uploadRow" style="display: none;">
+            <input type="file" id="mealImage" accept="image/*" style="display: none;" />
             <button id="sendImage" class="circleBtn captureBtn" type="button" aria-label="Send">➤</button>
           </div>
 
@@ -228,7 +233,7 @@
     </nav>
 
     <button id="captureFab" class="captureFab" type="button" aria-label="Open capture">
-      <span class="captureFabIcon">➕</span>
+      <span class="captureFabIcon">✚</span>
     </button>
   </div>
 
