@@ -176,35 +176,7 @@ body::after {
   display: flex;
 }
 
-.captureFab {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 56px;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  background: radial-gradient(circle at top, var(--accent-strong), var(--accent));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #120805;
-  font-weight: 700;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
-  cursor: pointer;
-  z-index: 6;
-}
-
-.captureFabIcon {
-  font-size: 2.1rem;
-  line-height: 1;
-}
-
-.captureFab:active {
-  transform: translateX(-50%) translateY(2px) scale(0.98);
-}
+/* capture FAB removed */
 
 .container[dir="rtl"] .tabBar {
   direction: rtl;
@@ -516,6 +488,7 @@ body::after {
   flex-direction: column;
   gap: 28px;
   align-items: center;
+  position: relative;
 }
 
 .circleWrap svg {
@@ -540,10 +513,15 @@ body[data-theme="meadow"] .circleFg {
 }
 
 .circleCenter {
-  margin-top: -110px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   gap: 6px;
+  align-items: center;
+  text-align: center;
 }
 
 .circleValue {
@@ -636,24 +614,29 @@ body[data-theme="meadow"] .microFg.protein {
   color: var(--text-muted);
 }
 
+.page[data-page="media"] {
+  padding: 0;
+}
+
 .mediaPanel {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 32px;
+  gap: 16px;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
   text-align: center;
   align-items: center;
   position: relative;
+  background: none;
+  border: none;
+  border-radius: 0;
+  min-height: calc(100vh - 140px);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .mediaPanel > * {
   width: 100%;
-}
-
-.mediaLead {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.95rem;
 }
 
 .uploadInfo {
@@ -671,21 +654,32 @@ body[data-theme="meadow"] .microFg.protein {
 }
 
 .cameraContainer {
+  position: relative;
   width: 100%;
+  height: calc(100vh - 220px);
+  max-height: calc(100vh - 220px);
+  min-height: 360px;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  background: #000;
+  border-radius: 22px;
+}
+
+#camera,
+.cameraContainer {
+  max-width: 680px;
+  margin-inline: auto;
 }
 
 #camera {
   width: 100%;
-  max-width: 500px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
+  border: none;
+  border-radius: 22px;
+  background: #000;
 }
 
 #snapshot {
@@ -693,24 +687,52 @@ body[data-theme="meadow"] .microFg.protein {
 }
 
 .capturePhotoBtn {
-  padding: 14px 28px;
-  border-radius: 20px;
-  border: none;
-  background: linear-gradient(120deg, var(--accent), var(--accent-strong));
-  color: #1a0b05;
-  font-weight: 700;
-  font-size: 1rem;
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.65);
+  background: radial-gradient(circle at 30% 30%, #ffffff, #dcdcdc);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.38);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
-.capturePhotoBtn:hover {
-  transform: translateY(-2px);
+.capturePhotoBtn::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #f6f6f6, #d0d0d0);
+}
+
+.capturePhotoBtn:active {
+  transform: translateX(-50%) scale(0.96);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
 }
 
 .mediaPanel.has-photo .cameraContainer {
   display: none;
+}
+
+/* Mobile-safe viewport sizing */
+@supports (height: 100dvh) {
+  .mediaPanel {
+    min-height: calc(100dvh - 140px);
+  }
+  .cameraContainer {
+    height: calc(100dvh - 220px);
+    max-height: calc(100dvh - 220px);
+  }
+}
+
+/* When showing controls after capture, allow scrolling instead of overflow */
+.mediaPanel.has-photo {
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 #mealImage {
@@ -756,6 +778,7 @@ body[data-theme="meadow"] .microFg.protein {
   padding: 12px 16px;
   font-weight: 600;
   cursor: pointer;
+  min-width: 120px;
 }
 
 #uploadBtn {
@@ -808,19 +831,75 @@ body[data-theme="meadow"] .microFg.protein {
   transform: translateY(-2px);
 }
 
-.manualAdd {
+.manualCard {
+  width: 90%;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
   display: flex;
+  flex-direction: column;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
-.manualAdd input {
-  flex: 1;
+.manualCardHeader {
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.manualAdd {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.manualAdd #manualCalories {
+  display: flex;
+  flex-direction: column;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--text);
   padding: 12px 14px;
+}
+
+.macroInputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.macroInputs input {
+  flex: 1 1 calc(33.333% - 8px);
+  min-width: min(120px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  padding: 12px 14px;
+}
+
+.manualAddBtn {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  color: #120805;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.manualAddBtn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 9px 18px rgba(0, 0, 0, 0.28);
 }
 
 #loadingOverlay {

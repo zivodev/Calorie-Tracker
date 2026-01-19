@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const progressText = $("progressText") || null;
   const progressCircle = $("calorieProgress") || null;
   const manualCalories = $("manualCalories") || null;
+  const manualProtein = $("manualProtein") || null;
+  const manualCarbs = $("manualCarbs") || null;
+  const manualFat = $("manualFat") || null;
   const addCaloriesBtn = $("addCaloriesBtn") || null;
   const forgetGoalBtn = $("forgetGoalBtn") || null;
   const imageInput = $("mealImage") || null;
@@ -113,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       progress: {
         label: "Calorie goal",
-        empty: "Waiting for goal…"
+        empty: "Scoping…"
       },
       media: {
         title: "Meal capture",
@@ -312,6 +315,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!uploadStatus) return;
     const text = translate(`media.status.${uploadState}`, { name: uploadFileName });
     uploadStatus.textContent = text || "";
+
+    if (sendImageBtn) {
+      const ready = uploadState === "ready" && Boolean(imageInput?.files?.length);
+      sendImageBtn.disabled = !ready;
+      sendImageBtn.setAttribute("aria-disabled", String(!ready));
+    }
   };
 
   const updateCircleProgress = () => {
@@ -420,7 +429,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const handleManualAdd = () => {
     if (!manualCalories) return;
     const value = Number(manualCalories.value);
-    if (!value || value <= 0) return;
+    if (!value || value <= 0) {
+      manualCalories.focus();
+      return;
+    }
+    const protein = Number(manualProtein?.value) || 0;
+    const carbs = Number(manualCarbs?.value) || 0;
+    const fat = Number(manualFat?.value) || 0;
+
     currentCalories = clamp(currentCalories + value, 0, 6000);
     updateCircleProgress();
     updateMacroUI();
@@ -432,6 +448,9 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           caloriesAdded: value,
+          protein,
+          carbs,
+          fat,
           totalCalories: currentCalories,
           timestamp: new Date().toISOString()
         })
@@ -441,6 +460,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // --- END N8N ---
     manualCalories.value = "";
+    if (manualProtein) manualProtein.value = "";
+    if (manualCarbs) manualCarbs.value = "";
+    if (manualFat) manualFat.value = "";
+    setActivePage("goal");
   };
 
   const setResetFeedback = (state) => {
@@ -611,6 +634,9 @@ document.addEventListener("DOMContentLoaded", () => {
       uploadState = "success";
       renderUploadStatus();
 
+      // After successful send, go back to progress page
+      setActivePage("goal");
+
       // --- N8N SEND MEAL PHOTO + CAPTION ---
       if (N8N_ENDPOINTS.mealCapture) {
         const formData = new FormData();
@@ -679,8 +705,6 @@ document.addEventListener("DOMContentLoaded", () => {
     applyTranslations();
   };
 
-  const captureFab = $("captureFab") || null;
-
   const setActivePage = (target) => {
     pages.forEach((page) =>
       page.classList.toggle("active", page.dataset.page === target)
@@ -688,9 +712,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tabButtons.forEach((btn) =>
       btn.classList.toggle("active", btn.dataset.target === target)
     );
-    if (captureFab) {
-      captureFab.classList.toggle("active", target === "media");
-    }
     // Start/stop camera when switching to/from media page
     if (target === "media") {
       if (!mediaPanel?.classList.contains("has-photo")) {
@@ -703,6 +724,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- bind events (only if elements exist) ----------
   form.addEventListener("submit", handleFormSubmit);
+  // Manual add: handle Enter key on any input
+  if (manualCalories) {
+    manualCalories.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleManualAdd();
+      }
+    });
+  }
+  const manualMacroInputs = [manualProtein, manualCarbs, manualFat].filter(Boolean);
+  manualMacroInputs.forEach((input) => {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleManualAdd();
+      }
+    });
+  });
   if (addCaloriesBtn) addCaloriesBtn.addEventListener("click", handleManualAdd);
   if (forgetGoalBtn) forgetGoalBtn.addEventListener("click", resetAll);
   if (panelToggle) panelToggle.addEventListener("click", togglePanel);
@@ -721,9 +760,6 @@ document.addEventListener("DOMContentLoaded", () => {
   tabButtons.forEach((btn) =>
     btn.addEventListener("click", () => setActivePage(btn.dataset.target))
   );
-  if (captureFab) {
-    captureFab.addEventListener("click", () => setActivePage("media"));
-  }
 
   // ---------- initial state ----------
   setTheme("default");
@@ -737,7 +773,6 @@ document.addEventListener("DOMContentLoaded", () => {
     progressCircle,
     progressText,
     manualCalories,
-    addCaloriesBtn,
     forgetGoalBtn,
     imageInput,
     uploadBtn,

@@ -126,13 +126,10 @@
 
       <section class="page panelColumn" id="page-media" data-page="media">
         <div class="panel mediaPanel">
-          <h2 data-i18n="media.title">Meal capture</h2>
-          <p class="mediaLead" data-i18n="media.lead">Log a photo when you add calories</p>
-
           <div class="cameraContainer">
             <video id="camera" autoplay playsinline></video>
             <canvas id="snapshot" style="display: none;"></canvas>
-            <button id="captureBtn" type="button" class="capturePhotoBtn" data-i18n="media.capture">Capture</button>
+            <button id="captureBtn" type="button" class="capturePhotoBtn" aria-label="Capture"></button>
           </div>
 
           <div class="uploadInfo">
@@ -140,9 +137,9 @@
             <span id="uploadStatus" class="uploadStatus" data-i18n="media.status.idle">Waiting for a photo</span>
           </div>
 
-          <div class="uploadRow" style="display: none;">
+          <div class="uploadRow">
             <input type="file" id="mealImage" accept="image/*" style="display: none;" />
-            <button id="sendImage" class="circleBtn captureBtn" type="button" aria-label="Send">➤</button>
+            <button id="sendImage" class="circleBtn captureBtn" type="button" aria-label="Send">Send</button>
           </div>
 
           <div id="imageInfoContainer">
@@ -150,10 +147,17 @@
               data-i18n-placeholder="media.caption" />
           </div>
 
-          <div class="manualAdd">
-            <input type="number" id="manualCalories" placeholder="Add calories manually"
-              data-i18n-placeholder="media.manual" />
-            <button id="addCaloriesBtn" class="circleBtn" type="button">+</button>
+          <div class="manualCard">
+            <div class="manualCardHeader">Add Manually</div>
+            <div class="manualAdd">
+              <input type="number" id="manualCalories" placeholder="Calories" aria-label="Calories" />
+              <div class="macroInputs">
+                <input type="number" id="manualProtein" placeholder="Protein (g)" aria-label="Protein grams" />
+                <input type="number" id="manualCarbs" placeholder="Carbs (g)" aria-label="Carbs grams" />
+                <input type="number" id="manualFat" placeholder="Fats (g)" aria-label="Fats grams" />
+              </div>
+              <button id="addCaloriesBtn" class="manualAddBtn" type="button" aria-label="Add manually">+ Add</button>
+            </div>
           </div>
         </div>
       </section>
@@ -232,9 +236,6 @@
       </button>
     </nav>
 
-    <button id="captureFab" class="captureFab" type="button" aria-label="Open capture">
-      <span class="captureFabIcon">✚</span>
-    </button>
   </div>
 
   <div id="loadingOverlay">
