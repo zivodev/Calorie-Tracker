@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=5.0, maximum-scale=1.0" />
+<title>CalorieScope</title>
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- External CSS -->
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="loadingBar"></div>
+
+  <div class="container" dir="ltr">
+    <div class="topBar">
+      <div class="brand" aria-label="CalorieScope">
+        <img src="logo.png" alt="CalorieScope logo" />
+        <span class="brand-title">CalorieScope</span>
+      </div>
+
+      <button id="formFab" class="formFab" type="button" aria-label="Open body details">
+        <span class="formFabIcon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.8" />
+            <path d="M8 9.5h8M8 13h5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </span>
+      </button>
+    </div>
+
+    <div id="formOverlay"></div>
+
+    <div class="pages">
+      <section class="page panelColumn active" id="page-goal" data-page="goal">
+        <div id="userPanel" class="panel">
+          <button id="panelToggle" class="panelHeader" aria-expanded="true">
+            <span id="panelTitle" data-i18n="panel.title">Body Details</span>
+            <span class="arrow">−</span>
+          </button>
+
+          <div id="panelBody" class="panelBody">
+            <form id="userForm">
+              <input type="number" id="age" placeholder="Age" data-i18n-placeholder="form.age" required />
+              <input type="number" id="weight" placeholder="Weight (kg)" data-i18n-placeholder="form.weight" required />
+              <input type="number" id="height" placeholder="Height (cm)" data-i18n-placeholder="form.height" required />
+
+              <select id="gender" required>
+                <option value="" data-i18n="form.genderPlaceholder">Select Gender</option>
+                <option value="male" data-i18n="form.male">Male</option>
+                <option value="female" data-i18n="form.female">Female</option>
+              </select>
+
+              <select id="activity" required>
+                <option value="" data-i18n="form.activityPlaceholder">Activity Level</option>
+                <option value="sedentary" data-i18n="form.activity.sedentary">Sedentary (little or no exercise)</option>
+                <option value="light" data-i18n="form.activity.light">Lightly Active (1–3 days/week)</option>
+                <option value="moderate" data-i18n="form.activity.moderate">Moderately Active (3–5 days/week)</option>
+                <option value="active" data-i18n="form.activity.active">Active (6–7 days/week)</option>
+                <option value="very_active" data-i18n="form.activity.very_active">Very Active (hard daily exercise)</option>
+              </select>
+
+              <select id="goal" required>
+                <option value="" data-i18n="form.goalPlaceholder">Goal</option>
+                <option value="maintain" data-i18n="form.goal.maintain">Maintain weight</option>
+                <option value="lose" data-i18n="form.goal.lose">Lose weight</option>
+                <option value="gain" data-i18n="form.goal.gain">Gain weight</option>
+                <option value="muscle" data-i18n="form.goal.muscle">Muscle gain</option>
+                <option value="cut" data-i18n="form.goal.cut">Fat loss (cut)</option>
+              </select>
+
+              <button type="submit" data-i18n="form.submit">Get Calorie Goal</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="progressContainer" class="panel" style="display:none;">
+          <div class="circleWrap" aria-label="Calories progress">
+            <svg viewBox="0 0 160 160" role="img" aria-hidden="true">
+              <circle class="circleBg" cx="80" cy="80" r="70" stroke-width="14" fill="none"></circle>
+              <circle id="calorieProgress" class="circleFg" cx="80" cy="80" r="70" stroke-width="14" fill="none"
+                stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82"></circle>
+            </svg>
+            <div class="circleCenter">
+              <div id="progressText" class="circleValue">0 / 0 kcal</div>
+              <div class="circleLabel" data-i18n="progress.label">Calorie goal</div>
+            </div>
+          </div>
+
+          <div class="macroCard">
+            <div class="macroOrbit" aria-label="Macros progress">
+              <div class="microCircle" data-macro="protein">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <circle class="microBg" cx="32" cy="32" r="26" stroke-width="6" fill="none"></circle>
+                  <circle id="proteinCircle" class="microFg protein" cx="32" cy="32" r="26" stroke-width="6" fill="none"
+                    stroke-linecap="round"></circle>
+                </svg>
+                <span id="proteinMiniValue" class="microValue">0g</span>
+                <span class="microLabel" data-i18n="macro.protein">Protein</span>
+              </div>
+
+              <div class="microCircle" data-macro="carbs">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <circle class="microBg" cx="32" cy="32" r="26" stroke-width="6" fill="none"></circle>
+                  <circle id="carbsCircle" class="microFg carbs" cx="32" cy="32" r="26" stroke-width="6" fill="none"
+                    stroke-linecap="round"></circle>
+                </svg>
+                <span id="carbsMiniValue" class="microValue">0g</span>
+                <span class="microLabel" data-i18n="macro.carbs">Carbs</span>
+              </div>
+
+              <div class="microCircle" data-macro="fat">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <circle class="microBg" cx="32" cy="32" r="26" stroke-width="6" fill="none"></circle>
+                  <circle id="fatCircle" class="microFg fat" cx="32" cy="32" r="26" stroke-width="6" fill="none"
+                    stroke-linecap="round"></circle>
+                </svg>
+                <span id="fatMiniValue" class="microValue">0g</span>
+                <span class="microLabel" data-i18n="macro.fat">Fats</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page panelColumn" id="page-media" data-page="media">
+        <div class="panel mediaPanel">
+          <div class="cameraContainer">
+            <video id="camera" autoplay playsinline></video>
+            <canvas id="snapshot" style="display: none;"></canvas>
+            <button id="captureBtn" type="button" class="capturePhotoBtn" aria-label="Capture"></button>
+          </div>
+
+          <div class="uploadInfo">
+            <img id="imagePreview" alt="preview" />
+            <span id="uploadStatus" class="uploadStatus" data-i18n="media.status.idle">Waiting for a photo</span>
+          </div>
+
+          <div class="uploadRow">
+            <input type="file" id="mealImage" accept="image/*" style="display: none;" />
+            <button id="sendImage" class="circleBtn captureBtn" type="button" aria-label="Send">Send</button>
+          </div>
+
+          <div id="imageInfoContainer">
+            <input type="text" id="imageInfo" placeholder="Add info about this meal (optional)"
+              data-i18n-placeholder="media.caption" />
+          </div>
+
+          <div class="manualCard">
+            <div class="manualCardHeader">Add Manually</div>
+            <div class="manualAdd">
+              <input type="number" id="manualCalories" placeholder="Calories" aria-label="Calories" />
+              <div class="macroInputs">
+                <input type="number" id="manualProtein" placeholder="Protein (g)" aria-label="Protein grams" />
+                <input type="number" id="manualCarbs" placeholder="Carbs (g)" aria-label="Carbs grams" />
+                <input type="number" id="manualFat" placeholder="Fats (g)" aria-label="Fats grams" />
+              </div>
+              <button id="addCaloriesBtn" class="manualAddBtn" type="button" aria-label="Add manually">+ Add</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page panelColumn" id="page-settings" data-page="settings">
+        <div class="panel settingsPanel">
+          <h2 data-i18n="settings.title">Personalize</h2>
+
+          <div class="settingRow">
+            <div class="settingLabel" data-i18n="settings.language">Language</div>
+            <div class="langSegment" role="group" aria-label="Language switch" data-active="en">
+              <button type="button" class="segOption active" data-lang="en">English</button>
+              <button type="button" class="segOption" data-lang="ar">العربية</button>
+              <span class="segHighlight" aria-hidden="true"></span>
+            </div>
+          </div>
+
+          <div class="settingRow themeRow">
+            <div class="settingLabel" data-i18n="settings.theme">Themes</div>
+            <div id="themeSelector" class="theme-selector" aria-label="Theme selector">
+              <div class="theme-list">
+                <div class="theme-row theme-row-dark">
+                  <span class="theme-icon theme-icon-dark" aria-hidden="true">🌙</span>
+                  <button class="theme-circle" data-theme="default" title="Bronze Night"></button>
+                  <button class="theme-circle" data-theme="ember" title="Ember Glow"></button>
+                  <button class="theme-circle" data-theme="midnight" title="Midnight"></button>
+                </div>
+                <div class="theme-row theme-row-light">
+                  <span class="theme-icon theme-icon-light" aria-hidden="true">☀️</span>
+                  <button class="theme-circle" data-theme="dawn" title="Soft Dawn"></button>
+                  <button class="theme-circle" data-theme="ocean" title="Calm Ocean"></button>
+                  <button class="theme-circle" data-theme="meadow" title="Fresh Meadow"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settingNote" data-i18n="settings.note">
+            Changes are saved locally so you can pick up where you left off.
+          </div>
+
+          <div class="settingActions">
+            <button id="forgetGoalBtn" type="button" class="primaryAction" data-i18n="settings.reset"
+              aria-label="Reset data" title="Reset data">Reset data</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="tabBar" aria-label="Main navigation">
+      <button class="tabBtn active" data-target="goal">
+        <span class="tabIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+            <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" />
+            <circle cx="12" cy="12" r="4" fill="currentColor" />
+          </svg>
+        </span>
+        <span class="tabLabel" data-i18n="nav.goal">Progress</span>
+      </button>
+      <button class="tabBtn" data-target="media">
+        <span class="tabIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="tabLabel" data-i18n="nav.capture">Capture</span>
+      </button>
+      <button class="tabBtn" data-target="settings">
+        <span class="tabIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+            <path d="M5 12a6.99 6.99 0 0 1 .08-1.05l-1.84-1.43 1.5-2.6 2.2.44a7 7 0 0 1 1.86-1.07l.34-2.13h3.72l.34 2.13a7 7 0 0 1 1.86 1.07l2.2-.44 1.5 2.6-1.84 1.43c.05.35.08.7.08 1.05s-.03.7-.08 1.05l1.84 1.43-1.5 2.6-2.2-.44a7 7 0 0 1-1.86 1.07l-.34 2.13H9.14l-.34-2.13a7 7 0 0 1-1.86-1.07l-2.2.44-1.5-2.6 1.84-1.43A7.03 7.03 0 0 1 5 12Z"
+              stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="tabLabel" data-i18n="nav.settings">Settings</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <div id="loadingOverlay">
+    <div class="spinner" aria-label="Loading"></div>
+  </div>
+
+  <!-- External JS -->
+  <script src="app.js"></script>
+</body>
+</html>
