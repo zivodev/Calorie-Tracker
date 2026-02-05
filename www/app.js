@@ -58,15 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fat: $("fatCircle")
   };
 
-  // ---------- external workflow endpoints (n8n) ----------
-  // Replace these with your final (non-test) n8n webhook URLs from the n8n UI.
-  const N8N_ENDPOINTS = {
-    manualCalories:
-      "https://caloriescope.app.n8n.cloud/webhook-test/bcddd092-eaa8-4a52-9e24-a1a7e5b26dd6",
-    mealCapture:
-      "https://caloriescope.app.n8n.cloud/webhook-test/eff0e03c-8382-4f7f-a60b-05dfee430173"
-  };
-
   const allowSelection = (target) =>
     target?.closest && target.closest("input, textarea, select, button, [contenteditable='true']");
 
@@ -147,7 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
       macro: {
         protein: "Protein",
         carbs: "Carbs",
-        fat: "Fats"
+        fat: "Fats",
+        dailyCalories: "Daily calories",
+        dailyProtein: "Protein / day",
+        dailyCarbs: "Carbs / day",
+        dailyFat: "Fats / day"
       },
       nav: {
         goal: "Progress",
@@ -223,7 +218,11 @@ document.addEventListener("DOMContentLoaded", () => {
       macro: {
         protein: "البروتين",
         carbs: "الكربوهيدرات",
-        fat: "الدهون"
+        fat: "الدهون",
+        dailyCalories: "السعرات اليومية",
+        dailyProtein: "البروتين / اليوم",
+        dailyCarbs: "الكربوهيدرات / اليوم",
+        dailyFat: "الدهون / اليوم"
       },
       nav: {
         goal: "التقدم",
@@ -264,6 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let calorieGoal = 0;
   let currentCalories = 0;
   let macroTargets = { protein: 0, carbs: 0, fat: 0 };
+  let currentMacros = { protein: 0, carbs: 0, fat: 0 };
   let currentLang = "en";
   let uploadState = "idle";
   let uploadFileName = "";
@@ -344,21 +344,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const updateMacroUI = () => {
-    const consumedProtein = calorieGoal
-      ? Math.round((currentCalories * macroRatios.protein) / 4)
-      : 0;
-    const consumedCarbs = calorieGoal
-      ? Math.round((currentCalories * macroRatios.carbs) / 4)
-      : 0;
-    const consumedFat = calorieGoal
-      ? Math.round((currentCalories * macroRatios.fat) / 9)
-      : 0;
-
     const gramUnit = translate("units.grams");
     const macroData = [
-      ["protein", consumedProtein],
-      ["carbs", consumedCarbs],
-      ["fat", consumedFat]
+      ["protein", currentMacros.protein],
+      ["carbs", currentMacros.carbs],
+      ["fat", currentMacros.fat]
     ];
 
     macroData.forEach(([key, consumed]) => {
@@ -370,17 +360,19 @@ document.addEventListener("DOMContentLoaded", () => {
         circle.style.strokeDashoffset = microCircumference - ratio * microCircumference;
       }
       if (valueEl) {
-        valueEl.textContent = `${formatNumber(consumed)}${gramUnit}`;
-        valueEl.setAttribute(
-          "title",
-          target ? `${formatNumber(consumed)} / ${formatNumber(target)}${gramUnit}` : ""
-        );
+        const rounded = Math.round(consumed * 10) / 10;
+        const targetRounded = Math.round((target || 0) * 10) / 10;
+        valueEl.textContent = target
+          ? `${rounded.toFixed(1)}/${targetRounded.toFixed(1)}`
+          : `${rounded.toFixed(1)}${gramUnit}`;
+        valueEl.removeAttribute("title");
       }
     });
   };
 
   const resetProgress = () => {
     currentCalories = 0;
+    currentMacros = { protein: 0, carbs: 0, fat: 0 };
     updateCircleProgress();
     updateMacroUI();
   };
@@ -438,27 +430,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const fat = Number(manualFat?.value) || 0;
 
     currentCalories = clamp(currentCalories + value, 0, 6000);
+    currentMacros.protein = clamp(currentMacros.protein + protein, 0, 9999);
+    currentMacros.carbs = clamp(currentMacros.carbs + carbs, 0, 9999);
+    currentMacros.fat = clamp(currentMacros.fat + fat, 0, 9999);
     updateCircleProgress();
     updateMacroUI();
-    // --- N8N SEND MANUAL CALORIES ---
-    if (N8N_ENDPOINTS.manualCalories) {
-      fetch(N8N_ENDPOINTS.manualCalories, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          caloriesAdded: value,
-          protein,
-          carbs,
-          fat,
-          totalCalories: currentCalories,
-          timestamp: new Date().toISOString()
-        })
-      }).catch((err) => {
-        console.error("[CalorieScope] Failed to notify n8n (manual calories):", err);
-      });
-    }
-    // --- END N8N ---
     manualCalories.value = "";
     if (manualProtein) manualProtein.value = "";
     if (manualCarbs) manualCarbs.value = "";
@@ -574,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Stop camera after capture
     stopCamera();
 
-    // Convert data URL to File for n8n upload
+    // Convert data URL to File so the fake upload flow can access it
     fetch(dataUrl)
       .then((res) => res.blob())
       .then((blob) => {
@@ -636,29 +612,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // After successful send, go back to progress page
       setActivePage("goal");
-
-      // --- N8N SEND MEAL PHOTO + CAPTION ---
-      if (N8N_ENDPOINTS.mealCapture) {
-        const formData = new FormData();
-        const file = imageInput.files?.[0];
-        // NOTE: your caption input id in HTML is `imageInfo`, adjust here if needed.
-        const captionInput =
-          document.getElementById("mealCaption") || document.getElementById("imageInfo");
-        const caption = captionInput?.value || "";
-
-        if (file) formData.append("image", file);
-        formData.append("caption", caption);
-        formData.append("timestamp", new Date().toISOString());
-
-        fetch(N8N_ENDPOINTS.mealCapture, {
-          method: "POST",
-          mode: "no-cors",
-          body: formData
-        }).catch((err) => {
-          console.error("[CalorieScope] Failed to notify n8n (meal capture):", err);
-        });
-      }
-      // --- END N8N ---
     }, 1200);
   };
 
