@@ -35,8 +35,7 @@ img {
   color: var(--text);
   display: flex;
   justify-content: center;
-  padding: 32px clamp(12px, 42px) 0px;
-  padding-bottom: 0px;
+  padding: 32px clamp(12px, 4vw, 42px) 0px;  padding-bottom: 0px;
   line-height: 1.5;
   position: relative;
   overflow-x: hidden;
@@ -1070,7 +1069,7 @@ body[data-theme="meadow"] .microFg.protein {
 
 @media (max-width: 720px) {
   body {
-    padding: 16px 12px 0px;
+    padding: 24px 12px 0px;
   }
 
   .container {
