@@ -1070,7 +1070,7 @@ body[data-theme="meadow"] .microFg.protein {
 
 @media (max-width: 720px) {
   body {
-    padding: 24px 12px 110px;
+    padding: 16px 12px 0px;
   }
 
   .container {
