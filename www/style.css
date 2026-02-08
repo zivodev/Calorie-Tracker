@@ -21,12 +21,10 @@
 
 body {
   margin: 0;
-
 body.locked,
 body.locked *:not(input):not(textarea):not(select):not(button):not([contenteditable]) {
   user-select: none;
 }
-
 img {
   pointer-events: none;
   -webkit-user-drag: none;
@@ -37,7 +35,8 @@ img {
   color: var(--text);
   display: flex;
   justify-content: center;
-  padding: 32px clamp(12px, 4vw, 42px) 90px;
+  padding: 32px clamp(12px, 42px) 0px;
+  padding-bottom: 0px;
   line-height: 1.5;
   position: relative;
   overflow-x: hidden;
@@ -82,9 +81,17 @@ body::after {
   padding: 16px clamp(18px, 4vw, 44px) 110px;
   position: relative;
   z-index: 1;
+  height: fit-content;
 }
 
 .container.language-fade {
+  align-items: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
   animation: languageFade 0.45s ease;
 }
 
@@ -426,6 +433,8 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  background: transparent;
+  border: none;
 }
 
 .tabBar {
