@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mediaPanel = document.querySelector(".mediaPanel");
   const formFab = $("formFab") || null;
   const formOverlay = $("formOverlay") || null;
+  const imageInfoInput = $("imageInfo") || null;
   const macroMiniValue = {
     protein: $("proteinMiniValue"),
     carbs: $("carbsMiniValue"),
@@ -122,7 +123,8 @@ document.addEventListener("DOMContentLoaded", () => {
           analyzing: "Analyzing meal…",
           success: "Meal logged successfully!",
           missing: "Select a photo first.",
-          cameraError: "Camera access failed"
+          cameraError: "Camera access failed",
+          error: "Upload failed. Please try again."
         }
       },
       settings: {
@@ -202,7 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
           analyzing: "يتم تحليل الوجبة…",
           success: "تم تسجيل الوجبة!",
           missing: "اختر صورة أولاً.",
-          cameraError: "فشل الوصول إلى الكاميرا"
+          cameraError: "فشل الوصول إلى الكاميرا",
+          error: "فشل رفع الصورة. حاول مرة أخرى."
         }
       },
       settings: {
@@ -596,7 +599,7 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file);
   };
 
-  const fakeUpload = () => {
+  const fakeUpload = async () => {
     if (!imageInput?.files?.length) {
       uploadState = "missing";
       renderUploadStatus();
@@ -605,14 +608,44 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleLoading(true);
     uploadState = "analyzing";
     renderUploadStatus();
-    setTimeout(() => {
+    const file = imageInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("image", file);
+    formData.append("filename", file.name);
+    if (imageInfoInput?.value) {
+      formData.append("caption", imageInfoInput.value);
+    }
+
+    try {
+      const response = await fetch(
+        "https://zivodev.app.n8n.cloud/webhook/eff0e03c-8382-4f7f-a60b-05dfee430173",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Webhook responded with ${response.status}`);
+      }
+
+      // Optionally inspect the response for debugging
+      // const data = await response.json().catch(() => null);
+      // console.log("[CalorieScope] Webhook response:", data);
+
       toggleLoading(false);
       uploadState = "success";
       renderUploadStatus();
 
       // After successful send, go back to progress page
       setActivePage("goal");
-    }, 1200);
+    } catch (error) {
+      console.error("[CalorieScope] Failed to send image to webhook:", error);
+      toggleLoading(false);
+      uploadState = "error";
+      renderUploadStatus();
+    }
   };
 
   const applyTranslations = () => {
