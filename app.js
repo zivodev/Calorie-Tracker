@@ -48,6 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const formFab = $("formFab") || null;
   const formOverlay = $("formOverlay") || null;
   const imageInfoInput = $("imageInfo") || null;
+  const progressNumbers = $("progressNumbers") || null;
+  const retakeBtn = $("retakeBtn") || null;
   const macroMiniValue = {
     protein: $("proteinMiniValue"),
     carbs: $("carbsMiniValue"),
@@ -327,23 +329,31 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const updateCircleProgress = () => {
-    if (!progressText || !progressCircle) {
-      // nothing to update visually, but keep state consistent
-      return;
-    }
+    if (!progressCircle) return;
+
     if (!calorieGoal) {
       progressCircle.style.strokeDashoffset = circleCircumference;
       progressCircle.style.stroke = "var(--accent)";
-      progressText.textContent = translate("progress.empty");
+      if (progressText) progressText.textContent = translate("progress.empty");
+      if (progressNumbers)
+        progressNumbers.textContent = `0 / 0 ${translate("units.kcal")}`;
       return;
     }
-    const progress = clamp((currentCalories / calorieGoal) * 100, 0, 130);
-    const dashOffset = circleCircumference - (progress / 100) * circleCircumference;
+    const rawPercent = (currentCalories / calorieGoal) * 100;
+    const progress = clamp(rawPercent, 0, 130);
+    const dashOffset =
+      circleCircumference - (progress / 100) * circleCircumference;
     progressCircle.style.strokeDashoffset = dashOffset;
     progressCircle.style.stroke = progress >= 100 ? "var(--success)" : "var(--accent)";
-    progressText.textContent = `${formatNumber(currentCalories)} / ${formatNumber(
-      calorieGoal
-    )} ${translate("units.kcal")}`;
+    const displayPercent = clamp(Math.round(rawPercent), 0, 999);
+    if (progressText) {
+      progressText.textContent = `${displayPercent}%`;
+    }
+    if (progressNumbers) {
+      progressNumbers.textContent = `${formatNumber(
+        currentCalories
+      )} / ${formatNumber(calorieGoal)} ${translate("units.kcal")}`;
+    }
   };
 
   const updateMacroUI = () => {
@@ -599,6 +609,21 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file);
   };
 
+  const handleRetake = () => {
+    if (imagePreview) {
+      imagePreview.src = "";
+      imagePreview.classList.remove("has-image");
+    }
+    if (imageInput) {
+      imageInput.value = "";
+    }
+    uploadFileName = "";
+    uploadState = "idle";
+    if (mediaPanel) mediaPanel.classList.remove("has-photo");
+    renderUploadStatus();
+    setActivePage("media");
+  };
+
   const fakeUpload = async () => {
     if (!imageInput?.files?.length) {
       uploadState = "missing";
@@ -630,16 +655,44 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`Webhook responded with ${response.status}`);
       }
 
-      // Optionally inspect the response for debugging
-      // const data = await response.json().catch(() => null);
-      // console.log("[CalorieScope] Webhook response:", data);
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch (e) {
+        // non‑JSON response is fine; we'll just skip progress updates
+      }
+
+      if (payload) {
+        const mealCalories = Number(
+          payload.calories ?? payload.kcal ?? payload.energy ?? 0
+        );
+        const mealProtein = Number(payload.protein ?? 0);
+        const mealCarbs = Number(payload.carbs ?? payload.carbohydrates ?? 0);
+        const mealFat = Number(payload.fat ?? payload.fats ?? 0);
+
+        if (!Number.isNaN(mealCalories) && mealCalories > 0) {
+          currentCalories += mealCalories;
+        }
+        if (!Number.isNaN(mealProtein) && mealProtein > 0) {
+          currentMacros.protein += mealProtein;
+        }
+        if (!Number.isNaN(mealCarbs) && mealCarbs > 0) {
+          currentMacros.carbs += mealCarbs;
+        }
+        if (!Number.isNaN(mealFat) && mealFat > 0) {
+          currentMacros.fat += mealFat;
+        }
+
+        updateCircleProgress();
+        updateMacroUI();
+      }
 
       toggleLoading(false);
       uploadState = "success";
       renderUploadStatus();
 
-      // After successful send, go back to progress page
-      setActivePage("goal");
+      // After successful send, reset preview and return to camera
+      handleRetake();
     } catch (error) {
       console.error("[CalorieScope] Failed to send image to webhook:", error);
       toggleLoading(false);
@@ -743,6 +796,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (imageInput) imageInput.addEventListener("change", handleUploadPreview);
   if (captureBtn) captureBtn.addEventListener("click", handleCameraCapture);
   if (sendImageBtn) sendImageBtn.addEventListener("click", fakeUpload);
+  if (retakeBtn) retakeBtn.addEventListener("click", handleRetake);
   tabButtons.forEach((btn) =>
     btn.addEventListener("click", () => setActivePage(btn.dataset.target))
   );

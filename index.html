@@ -83,9 +83,10 @@
                 stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82"></circle>
             </svg>
             <div class="circleCenter">
-              <div id="progressText" class="circleValue">0 / 0 kcal</div>
+              <div id="progressText" class="circleValue">0%</div>
               <div class="circleLabel" data-i18n="progress.label">Calorie goal</div>
             </div>
+            <div id="progressNumbers" class="circleNumbers">0 / 0 kcal</div>
           </div>
 
           <div class="macroCard">
@@ -139,7 +140,10 @@
 
           <div class="uploadRow">
             <input type="file" id="mealImage" accept="image/*" style="display: none;" />
+            <button id="uploadBtn" class="circleBtn" type="button" aria-label="Add photo"
+              data-i18n="media.addPhoto">⬆ Add a photo</button>
             <button id="sendImage" class="circleBtn captureBtn" type="button" aria-label="Send">Send</button>
+            <button id="retakeBtn" class="circleBtn" type="button" aria-label="Retake photo">Retake</button>
           </div>
 
           <div id="imageInfoContainer">

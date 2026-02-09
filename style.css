@@ -542,6 +542,13 @@ body[data-theme="meadow"] .circleFg {
   font-size: 0.9rem;
 }
 
+.circleNumbers {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
 .macroOrbit {
   display: flex;
   gap: clamp(12px, 2vw, 24px);
@@ -657,7 +664,8 @@ body[data-theme="meadow"] .microFg.protein {
 
 .mediaPanel:not(.has-photo) .uploadInfo,
 .mediaPanel:not(.has-photo) #sendImage,
-.mediaPanel:not(.has-photo) #imageInfoContainer {
+.mediaPanel:not(.has-photo) #imageInfoContainer,
+.mediaPanel:not(.has-photo) #retakeBtn {
   display: none;
 }
 
